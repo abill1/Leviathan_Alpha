@@ -32,12 +32,19 @@ void ABaseCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompo
 
 	// ----- Set Movement key bindings 
 	PlayerInputComponent->BindAxis(TEXT("MoveFwd_Bwd"), this, &ABaseCharacter::privMoveFwd_Bwd);
+	PlayerInputComponent->BindAxis(TEXT("MoveLeft_Right"), this, &ABaseCharacter::privMoveLeft_Right);
 
 }
 
 void ABaseCharacter::privMoveFwd_Bwd(const float _axisValue)
 {
 	this->AddMovementInput(this->GetActorForwardVector() * _axisValue);
+
+}
+
+void ABaseCharacter::privMoveLeft_Right(const float _axisValue)
+{
+	this->AddMovementInput(this->GetActorRightVector() * _axisValue);
 
 }
 

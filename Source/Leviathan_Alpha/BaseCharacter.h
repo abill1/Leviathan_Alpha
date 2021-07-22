@@ -23,6 +23,7 @@ protected:
 
 private:
 	void privMoveFwd_Bwd(const float _axisValue);
+	void privMoveLeft_Right(const float _axisValue);
 
 private:
 
