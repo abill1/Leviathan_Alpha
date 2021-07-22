@@ -12,18 +12,19 @@ class LEVIATHAN_ALPHA_API ABaseCharacter : public ACharacter
 	GENERATED_BODY()
 
 public:
-	// Sets default values for this character's properties
-	ABaseCharacter();
+	ABaseCharacter();																				// Sets default values for this character's properties
+
+public:
+	virtual void Tick(float DeltaTime) override;													// Called every frame	
+	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;	// Called to bind functionality to input
 
 protected:
-	// Called when the game starts or when spawned
-	virtual void BeginPlay() override;
+	virtual void BeginPlay() override;																// Called when the game starts or when spawned
 
-public:	
-	// Called every frame
-	virtual void Tick(float DeltaTime) override;
+private:
+	void privMoveFwd_Bwd(const float _axisValue);
 
-	// Called to bind functionality to input
-	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
+private:
+
 
 };
