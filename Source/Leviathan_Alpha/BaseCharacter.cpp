@@ -34,6 +34,9 @@ void ABaseCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompo
 	PlayerInputComponent->BindAxis(TEXT("MoveFwd_Bwd"), this, &ABaseCharacter::privMoveFwd_Bwd);
 	PlayerInputComponent->BindAxis(TEXT("MoveLeft_Right"), this, &ABaseCharacter::privMoveLeft_Right);
 
+	//----- Set Camera Movement bindings
+	PlayerInputComponent->BindAxis(TEXT("LookLeft_Right"), this, &APawn::AddControllerYawInput);
+
 }
 
 void ABaseCharacter::privMoveFwd_Bwd(const float _axisValue)
