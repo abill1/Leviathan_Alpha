@@ -6,7 +6,7 @@
 #include "GameFramework/Character.h"
 #include "BaseCharacter.generated.h"
 
-UCLASS()
+UCLASS(config=Game)
 class LEVIATHAN_ALPHA_API ABaseCharacter : public ACharacter
 {
 	GENERATED_BODY()
@@ -16,16 +16,44 @@ public:
 
 public:
 	virtual void Tick(float DeltaTime) override;													// Called every frame	
-	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;	// Called to bind functionality to input
+	
+	class USpingArmComponent* GetSpringArmComponent() const;
+	class UCameraComponent* GetCameraComponent() const;
 
 protected:
 	virtual void BeginPlay() override;																// Called when the game starts or when spawned
+	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;	// Called to bind functionality to input
+
+	void MoveFwd_Bwd(const float _axisValue);
+	void MoveLeft_Right(const float _axisValue);
 
 private:
-	void privMoveFwd_Bwd(const float _axisValue);
-	void privMoveLeft_Right(const float _axisValue);
+
 
 private:
 
+	UPROPERTY()
+		FVector2D MouseInput;
+
+	UPROPERTY(VisibleAnywhere, Category = Camera, meta = (AllowPrivateAccess = "true"))
+		class USpringArmComponent* SpringArm;
+
+	UPROPERTY(VisibleAnywhere, Category = Camera, meta = (AllowPrivateAccess = "true"))
+		class UCameraComponent* Camera;
+
+	UPROPERTY(VisibleAnywhere, Category = Camera)												// Can be used for rotation using gamepad or arrow keys
+		float BaseTurnRate;
+
+	UPROPERTY(VisibleAnywhere, Category = Camera)
+		float BaseLookUpRate;
+
+	UPROPERTY(VisibleAnywhere)
+		float CapsuleRadius;
+
+	UPROPERTY(VisibleAnywhere)
+		float CapsuleHalfHeight;
+
+	UPROPERTY(EditAnywhere)
+		float SpringArmLength;
 
 };

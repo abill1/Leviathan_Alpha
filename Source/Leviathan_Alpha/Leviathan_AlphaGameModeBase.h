@@ -13,5 +13,7 @@ UCLASS()
 class LEVIATHAN_ALPHA_API ALeviathan_AlphaGameModeBase : public AGameModeBase
 {
 	GENERATED_BODY()
-	
+public:
+	ALeviathan_AlphaGameModeBase();
+
 };
