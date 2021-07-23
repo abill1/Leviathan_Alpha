@@ -36,6 +36,7 @@ void ABaseCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompo
 
 	//----- Set Camera Movement bindings
 	PlayerInputComponent->BindAxis(TEXT("LookLeft_Right"), this, &APawn::AddControllerYawInput);
+	PlayerInputComponent->BindAxis(TEXT("LookUp_Down"), this, &APawn::AddControllerPitchInput);
 
 }
 
