@@ -191,6 +191,7 @@ void ABaseCharacter::ZoomIn()
 	USpringArmComponent* pArm = GetCameraBoom();
 	if (pArm != nullptr && !this->EnableRotateCamera)													// Cannot zoom in if currently rotating around character
 	{
+
 		FVector forward = GetActorForwardVector();
 		pArm->TargetArmLength = SpringArmAimLength;
 		pArm->TargetOffset = FVector(0.0f, 60.0f, 70.0f);
@@ -203,6 +204,7 @@ void ABaseCharacter::ZoomIn()
 		if (pMovement)
 		{
 			pMovement->MaxWalkSpeed = WalkAndAimSpeed;
+			pMovement->bOrientRotationToMovement = false;									// Changing this to false while zoomed prevents the character model from doing a small rotation in the direction of the input
 
 		}
 		
@@ -228,6 +230,7 @@ void ABaseCharacter::ZoomOut()
 		if (pMovement)
 		{
 			pMovement->MaxWalkSpeed = WalkingSpeed;
+			pMovement->bOrientRotationToMovement = true;									// Reset to allow the model to rotate with movement input
 
 		}
 	
