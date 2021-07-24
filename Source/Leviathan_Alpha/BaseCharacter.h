@@ -21,8 +21,6 @@ public:
 	FORCEINLINE class USpringArmComponent* GetCameraBoom() const { return SpringArm; }
 	/** Returns FollowCamera subobject **/
 	FORCEINLINE class UCameraComponent* GetFollowCamera() const { return Camera; }
-	//class USpingArmComponent* GetSpringArmComponent() const;
-	//class UCameraComponent* GetCameraComponent() const;
 
 protected:
 	virtual void BeginPlay() override;																// Called when the game starts or when spawned
@@ -30,16 +28,18 @@ protected:
 
 	void MoveFwd_Bwd(const float _axisValue);
 	void MoveLeft_Right(const float _axisValue);
+	void LookUp_Down(const float _axisValue);
+
 	void ZoomIn();																					// Methods for positioning the camera while aiming
 	void ZoomOut();
+	
+	void EnableRotation();
+	void DisableRotation();
 
 private:
-
+	void privDebugCamAndPlayerPosition() const;
 
 private:
-
-	UPROPERTY()
-		FVector2D MouseInput;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
 		class USpringArmComponent* SpringArm;
@@ -59,10 +59,16 @@ private:
 	UPROPERTY(VisibleAnywhere)
 		float CapsuleHalfHeight;
 
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere, Category = Camera)
+		float MaxPitch;
+
+	UPROPERTY(EditAnywhere, Category = Camera)
+		float MinPitch;
+
+	UPROPERTY(EditAnywhere, Category = Camera)
 		float SpringArmFollowLength;
 
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere, Category = Camera)
 		float SpringArmAimLength;
 
 	UPROPERTY(EditAnywhere)
@@ -77,4 +83,7 @@ private:
 	UPROPERTY(EditAnywhere)
 		bool ZoomedIn;
 	
+	UPROPERTY(EditAnywhere)
+		bool EnableRotateCamera;
+
 };

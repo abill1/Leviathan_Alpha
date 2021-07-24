@@ -9,15 +9,17 @@
 #include "GameFramework/Controller.h"
 #include "GameFramework/SpringArmComponent.h"
 
+#define MY_LOG(x) UE_LOG(LogTemp, Warning, x);
+
 // Sets default values
 ABaseCharacter::ABaseCharacter()
 {
  	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 	
-	CapsuleRadius = 42.0f;														// These should be dependent on the size of the mesh of the character
+	CapsuleRadius = 42.0f;															// These should be dependent on the size of the mesh of the character
 	CapsuleHalfHeight = 96.0f;
-	GetCapsuleComponent()->InitCapsuleSize(CapsuleRadius, CapsuleHalfHeight);	// Initialize the collision capsule around the character pawn
+	GetCapsuleComponent()->InitCapsuleSize(CapsuleRadius, CapsuleHalfHeight);		// Initialize the collision capsule around the character pawn
 
 	// ----- Set Character Characteristics
 	UCharacterMovementComponent* pMovement = GetCharacterMovement();
@@ -30,6 +32,9 @@ ABaseCharacter::ABaseCharacter()
 	WalkAndAimSpeed = 300.0f;
 	ZoomRate = 20.0f;
 	ZoomedIn = false;
+	MaxPitch = -55.0f;
+	MinPitch = 10.0f;
+	EnableRotateCamera = false;
 
 	// ----- Camera Setup
 	this->SpringArm = CreateDefaultSubobject<USpringArmComponent>(TEXT("CameraBoom"));
@@ -76,6 +81,17 @@ void ABaseCharacter::BeginPlay()
 	if(this->SpringArm == nullptr)
 		UE_LOG(LogTemp, Warning, TEXT("Spring Arm null."));
 
+	APlayerController* PlayerController = Cast<APlayerController>(Controller);
+	if (PlayerController)
+	{
+		if (PlayerController->PlayerCameraManager)
+		{
+			PlayerController->PlayerCameraManager->ViewPitchMin = this->MaxPitch; 
+			PlayerController->PlayerCameraManager->ViewPitchMax = this->MinPitch;
+
+		}
+	}
+
 }
 
 // Called every frame
@@ -95,83 +111,101 @@ void ABaseCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompo
 	PlayerInputComponent->BindAction(TEXT("Aim"), EInputEvent::IE_Pressed, this, &ABaseCharacter::ZoomIn);
 	PlayerInputComponent->BindAction(TEXT("Aim"), EInputEvent::IE_Released, this, &ABaseCharacter::ZoomOut);
 
+	// ----- Enable Rotation around Character
+	PlayerInputComponent->BindAction(TEXT("RotateCamera"), EInputEvent::IE_Pressed, this, &ABaseCharacter::EnableRotation);
+	PlayerInputComponent->BindAction(TEXT("RotateCamera"), EInputEvent::IE_Released, this, &ABaseCharacter::DisableRotation);
+
 	// ----- Set Movement key bindings 
 	PlayerInputComponent->BindAxis(TEXT("MoveFwd_Bwd"), this, &ABaseCharacter::MoveFwd_Bwd);
 	PlayerInputComponent->BindAxis(TEXT("MoveLeft_Right"), this, &ABaseCharacter::MoveLeft_Right);
 
 	//----- Set Camera Movement bindings
 	PlayerInputComponent->BindAxis(TEXT("LookLeft_Right"), this, &APawn::AddControllerYawInput);
-	PlayerInputComponent->BindAxis(TEXT("LookUp_Down"), this, &APawn::AddControllerPitchInput);
+	PlayerInputComponent->BindAxis(TEXT("LookUp_Down"), this, &ABaseCharacter::LookUp_Down);
 
 }
 
 void ABaseCharacter::MoveFwd_Bwd(const float _axisValue)
 {
-	if ((this->Controller != nullptr) && (_axisValue != 0.0f))
+	if ((this->Controller != nullptr) && (_axisValue != 0.0f) && !EnableRotateCamera)
 	{
-		//if (!ZoomedIn)
-		//{
-			const FRotator Rotation = this->Controller->GetControlRotation();					// Get the rotation
-			const FRotator YawRotation(0.0f, Rotation.Yaw, 0.0f);
-			const FVector Direction = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);		// Create forward vector
-			this->AddMovementInput(Direction * _axisValue);										// Update movement with the forward vector
-		
-		//}
-		//else
-		//{
-			//this->AddMovementInput(this->GetActorForwardVector() * _axisValue);
 
-		//}
+		const FRotator Rotation = this->Controller->GetControlRotation();					// Get the rotation
+		const FRotator YawRotation(0.0f, Rotation.Yaw, 0.0f);
+		const FVector Direction = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);		// Create forward vector
+		this->AddMovementInput(Direction * _axisValue);										// Update movement with the forward vector
+		this->privDebugCamAndPlayerPosition();
 
-		//UE_LOG(LogTemp, Warning, TEXT("Axis Should Not equal Zeror : %f."), _axisValue);
-		// this->GetActorForwardVector() => would this be faster to call; need to look to see how this method is different from above
-	
 	}
 	
 }
 
 void ABaseCharacter::MoveLeft_Right(const float _axisValue)
 {
-	if ((this->Controller != nullptr) && (_axisValue != 0.0f))
+	if ((this->Controller != nullptr) && (_axisValue != 0.0f) && !EnableRotateCamera)
 	{
-		//if(!ZoomedIn)
-		//{
-			const FRotator Rotation = this->Controller->GetControlRotation();					// Get the rotation
-			const FRotator YawRotation(0.0f, Rotation.Yaw, 0.0f);
-			const FVector Direction = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);		// Create right vector
-			this->AddMovementInput(Direction * _axisValue);										// Update movement with the forward vector
-		
-		//}
-		//else
-		//{
-			//this->AddMovementInput(this->GetActorRightVector() * _axisValue);
+		const FRotator Rotation = this->Controller->GetControlRotation();					// Get the rotation
+		const FRotator YawRotation(0.0f, Rotation.Yaw, 0.0f);
+		const FVector Direction = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);		// Create right vector
+		this->AddMovementInput(Direction * _axisValue);										// Update movement with the forward vector
+		this->privDebugCamAndPlayerPosition();
 
-		//}
-
-		// this->GetActorForwardVector() => would this be faster to call; need to look to see how this method is different from above
 	}
 
 }
 
+void ABaseCharacter::LookUp_Down(const float _axisValue)
+{
+	if (_axisValue != 0.0f)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Axis Val: %f."), _axisValue);
+		APlayerController* pCont = CastChecked<APlayerController>(GetController());
+		if (pCont != nullptr && !pCont->IsLookInputIgnored())
+		{
+			float change = _axisValue * pCont->InputPitchScale;
+			UE_LOG(LogTemp, Warning, TEXT("PitchScale: %f."), pCont->InputPitchScale);
+			UE_LOG(LogTemp, Warning, TEXT("Change: %f."), change);
+			pCont->RotationInput.Pitch += change;
+			UE_LOG(LogTemp, Warning, TEXT("New Pitch: %f."), pCont->RotationInput.Pitch);
+			UE_LOG(LogTemp, Warning, TEXT("---------------"));
+
+		}
+		else
+		{
+			pCont->RotationInput.Pitch += 0.0f;
+
+		}
+
+	}
+	
+}
+
+/*
+* The zoom in method still needs refining. The character should remain in the bottom left corner
+* even if the player rotates the camera. Currently, the character does not rotate with the camera
+* so it appears that the character moves toward the center and then to the right corner. 
+* 
+*/
 void ABaseCharacter::ZoomIn()
 {
 	USpringArmComponent* pArm = GetCameraBoom();
-	if (pArm != nullptr)
+	if (pArm != nullptr && !this->EnableRotateCamera)													// Cannot zoom in if currently rotating around character
 	{
 		FVector forward = GetActorForwardVector();
-		UE_LOG(LogTemp, Warning, TEXT("Forward: %f, %f, %f."),forward.X, forward.Y, forward.Z);
 		pArm->TargetArmLength = SpringArmAimLength;
 		pArm->TargetOffset = FVector(0.0f, 60.0f, 70.0f);
 		this->ZoomedIn = true;
 
-		UE_LOG(LogTemp, Warning, TEXT("Zoomed In."));
+		UE_LOG(LogTemp, Warning, TEXT("Forward: %f, %f, %f."), forward.X, forward.Y, forward.Z);
+		MY_LOG(TEXT("Zoomed In."));
+
 		UCharacterMovementComponent* pMovement = GetCharacterMovement();
 		if (pMovement)
 		{
 			pMovement->MaxWalkSpeed = WalkAndAimSpeed;
 
 		}
-
+		
 	}
 	else
 	{
@@ -188,7 +222,6 @@ void ABaseCharacter::ZoomOut()
 		pArm->TargetArmLength = SpringArmFollowLength;
 		pArm->TargetOffset = FVector(0.0f, 0.0f, 0.0f);
 		this->ZoomedIn = false;
-		
 
 		UE_LOG(LogTemp, Warning, TEXT("Zoomed Out."));
 		UCharacterMovementComponent* pMovement = GetCharacterMovement();
@@ -197,6 +230,7 @@ void ABaseCharacter::ZoomOut()
 			pMovement->MaxWalkSpeed = WalkingSpeed;
 
 		}
+	
 	}
 	else
 	{
@@ -204,4 +238,48 @@ void ABaseCharacter::ZoomOut()
 	}
 
 }
+
+void ABaseCharacter::EnableRotation()
+{
+	if (!this->ZoomedIn)																// Cannot rotate around character if zoomed in	
+	{
+		bUseControllerRotationYaw = false;												// This boolean enables the camera to rotate around the character
+		this->EnableRotateCamera = true;
+		MY_LOG(TEXT("Start Rotation."));
+		this->privDebugCamAndPlayerPosition();
+
+	}
+}
+
+/*
+* This function still needs some work. Ideally, the camera will 
+* rotate back around the character so that its forward vector is
+* the same as the character. Currently, the character will rotate
+* so that its forward vector matches the camera. 
+* 
+*/
+void ABaseCharacter::DisableRotation()
+{
+	bUseControllerRotationYaw = true;												// Prevents the camera from rotating around the character
+	this->EnableRotateCamera = false;
+	this->privDebugCamAndPlayerPosition();
+	MY_LOG(TEXT("Stop Rotation."));
+
+}
+
+void ABaseCharacter::privDebugCamAndPlayerPosition() const
+{
+	FVector characterLocation = this->GetActorLocation();
+	UE_LOG(LogTemp, Warning, TEXT("Charcter Pos: X: %f; Y: %f; Z:%f"), characterLocation.X, characterLocation.Y, characterLocation.Z);
+
+	USpringArmComponent* pArm = GetCameraBoom();
+	if (pArm)
+	{
+		FVector camPosition = pArm->GetComponentLocation();
+		UE_LOG(LogTemp, Warning, TEXT("Cam Pos: X: %f; Y: %f; Z:%f"), camPosition.X, camPosition.Y, camPosition.Z);
+
+	}
+
+}
+
 
