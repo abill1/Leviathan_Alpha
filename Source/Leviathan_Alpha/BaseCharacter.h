@@ -17,8 +17,12 @@ public:
 public:
 	virtual void Tick(float DeltaTime) override;													// Called every frame	
 	
-	class USpingArmComponent* GetSpringArmComponent() const;
-	class UCameraComponent* GetCameraComponent() const;
+	/** Returns CameraBoom subobject **/
+	FORCEINLINE class USpringArmComponent* GetCameraBoom() const { return SpringArm; }
+	/** Returns FollowCamera subobject **/
+	FORCEINLINE class UCameraComponent* GetFollowCamera() const { return Camera; }
+	//class USpingArmComponent* GetSpringArmComponent() const;
+	//class UCameraComponent* GetCameraComponent() const;
 
 protected:
 	virtual void BeginPlay() override;																// Called when the game starts or when spawned
@@ -26,6 +30,8 @@ protected:
 
 	void MoveFwd_Bwd(const float _axisValue);
 	void MoveLeft_Right(const float _axisValue);
+	void ZoomIn();																					// Methods for positioning the camera while aiming
+	void ZoomOut();
 
 private:
 
@@ -35,10 +41,10 @@ private:
 	UPROPERTY()
 		FVector2D MouseInput;
 
-	UPROPERTY(VisibleAnywhere, Category = Camera, meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
 		class USpringArmComponent* SpringArm;
 
-	UPROPERTY(VisibleAnywhere, Category = Camera, meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
 		class UCameraComponent* Camera;
 
 	UPROPERTY(VisibleAnywhere, Category = Camera)												// Can be used for rotation using gamepad or arrow keys
@@ -54,6 +60,21 @@ private:
 		float CapsuleHalfHeight;
 
 	UPROPERTY(EditAnywhere)
-		float SpringArmLength;
+		float SpringArmFollowLength;
 
+	UPROPERTY(EditAnywhere)
+		float SpringArmAimLength;
+
+	UPROPERTY(EditAnywhere)
+		float WalkingSpeed;
+
+	UPROPERTY(EditAnywhere)
+		float WalkAndAimSpeed;
+	
+	UPROPERTY(EditAnywhere)
+		float ZoomRate;
+
+	UPROPERTY(EditAnywhere)
+		bool ZoomedIn;
+	
 };
