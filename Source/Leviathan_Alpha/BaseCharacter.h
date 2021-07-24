@@ -75,15 +75,18 @@ private:
 		float WalkingSpeed;
 
 	UPROPERTY(EditAnywhere)
-		float WalkAndAimSpeed;
+		float WalkSpeedWhileAiming;
 	
 	UPROPERTY(EditAnywhere)
 		float ZoomRate;
 
 	UPROPERTY(EditAnywhere)
 		bool ZoomedIn;
-	
+
 	UPROPERTY(EditAnywhere)
 		bool EnableRotateCamera;
+
+	// bool pad 0
+	// bool pad 1
 
 };

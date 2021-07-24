@@ -29,7 +29,7 @@ ABaseCharacter::ABaseCharacter()
 	pMovement->AirControl = 0.2f;													// When falling, amount of lateral movement control available to the character. How much the character can move around the x,y plane while in the air.
 	pMovement->MaxWalkSpeed = 600.0f;
 	WalkingSpeed = 600.0f;
-	WalkAndAimSpeed = 300.0f;
+	WalkSpeedWhileAiming = 300.0f;
 	ZoomRate = 20.0f;
 	ZoomedIn = false;
 	MaxPitch = -55.0f;
@@ -203,7 +203,7 @@ void ABaseCharacter::ZoomIn()
 		UCharacterMovementComponent* pMovement = GetCharacterMovement();
 		if (pMovement)
 		{
-			pMovement->MaxWalkSpeed = WalkAndAimSpeed;
+			pMovement->MaxWalkSpeed = WalkSpeedWhileAiming;
 			pMovement->bOrientRotationToMovement = false;									// Changing this to false while zoomed prevents the character model from doing a small rotation in the direction of the input
 
 		}
