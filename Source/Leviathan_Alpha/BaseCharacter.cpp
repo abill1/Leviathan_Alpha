@@ -181,20 +181,21 @@ void ABaseCharacter::LookUp_Down(const float _axisValue)
 }
 
 /*
-* The zoom in method still needs refining. The character should remain in the bottom left corner
-* even if the player rotates the camera. Currently, the character does not rotate with the camera
-* so it appears that the character moves toward the center and then to the right corner. 
+* The zoom in method will now position the camera so that the character appears 
+* in the bottom left corner of the screen. When the player rotates while zoomed 
+* in, the character remains in the corner and the camera track the character. 
+* This effect is accomplished by changing the socket offset of the spring arm. 
 * 
 */
 void ABaseCharacter::ZoomIn()
 {
 	USpringArmComponent* pArm = GetCameraBoom();
-	if (pArm != nullptr && !this->EnableRotateCamera)													// Cannot zoom in if currently rotating around character
+	if (pArm != nullptr && !this->EnableRotateCamera)										// Cannot zoom in if currently rotating around character
 	{
 
 		FVector forward = GetActorForwardVector();
 		pArm->TargetArmLength = SpringArmAimLength;
-		pArm->TargetOffset = FVector(0.0f, 60.0f, 70.0f);
+		pArm->SocketOffset = FVector(0.0f, 60.0f, 70.0f);									// Change the socket offset to give a zoom in effect
 		this->ZoomedIn = true;
 
 		UE_LOG(LogTemp, Warning, TEXT("Forward: %f, %f, %f."), forward.X, forward.Y, forward.Z);
@@ -203,7 +204,7 @@ void ABaseCharacter::ZoomIn()
 		UCharacterMovementComponent* pMovement = GetCharacterMovement();
 		if (pMovement)
 		{
-			pMovement->MaxWalkSpeed = WalkSpeedWhileAiming;
+			pMovement->MaxWalkSpeed = this->WalkSpeedWhileAiming;
 			pMovement->bOrientRotationToMovement = false;									// Changing this to false while zoomed prevents the character model from doing a small rotation in the direction of the input
 
 		}
@@ -221,15 +222,15 @@ void ABaseCharacter::ZoomOut()
 	USpringArmComponent* pArm = GetCameraBoom();
 	if (pArm != nullptr)
 	{
-		pArm->TargetArmLength = SpringArmFollowLength;
-		pArm->TargetOffset = FVector(0.0f, 0.0f, 0.0f);
+		pArm->TargetArmLength = this->SpringArmFollowLength;
+		pArm->SocketOffset = FVector(0.0f, 0.0f, 0.0f);
 		this->ZoomedIn = false;
 
 		UE_LOG(LogTemp, Warning, TEXT("Zoomed Out."));
 		UCharacterMovementComponent* pMovement = GetCharacterMovement();
 		if (pMovement)
 		{
-			pMovement->MaxWalkSpeed = WalkingSpeed;
+			pMovement->MaxWalkSpeed = this->WalkingSpeed;
 			pMovement->bOrientRotationToMovement = true;									// Reset to allow the model to rotate with movement input
 
 		}
@@ -244,9 +245,9 @@ void ABaseCharacter::ZoomOut()
 
 void ABaseCharacter::EnableRotation()
 {
-	if (!this->ZoomedIn)																// Cannot rotate around character if zoomed in	
+	if (!this->ZoomedIn)																	// Cannot rotate around character if zoomed in	
 	{
-		bUseControllerRotationYaw = false;												// This boolean enables the camera to rotate around the character
+		bUseControllerRotationYaw = false;													// This boolean enables the camera to rotate around the character
 		this->EnableRotateCamera = true;
 		MY_LOG(TEXT("Start Rotation."));
 		this->privDebugCamAndPlayerPosition();
@@ -263,7 +264,7 @@ void ABaseCharacter::EnableRotation()
 */
 void ABaseCharacter::DisableRotation()
 {
-	bUseControllerRotationYaw = true;												// Prevents the camera from rotating around the character
+	bUseControllerRotationYaw = true;													// Prevents the camera from rotating around the character
 	this->EnableRotateCamera = false;
 	this->privDebugCamAndPlayerPosition();
 	MY_LOG(TEXT("Stop Rotation."));
