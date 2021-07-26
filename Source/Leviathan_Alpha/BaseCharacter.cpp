@@ -79,7 +79,11 @@ void ABaseCharacter::BeginPlay()
 	Super::BeginPlay();	
 	this->SpringArm = (USpringArmComponent*)GetDefaultSubobjectByName(TEXT("CameraBoom"));			// Need to reconnect the pointer
 	if(this->SpringArm == nullptr)
-		UE_LOG(LogTemp, Warning, TEXT("Spring Arm null."));
+		MY_LOG(TEXT("Spring Arm null."));
+
+	this->Camera = (UCameraComponent*)GetDefaultSubobjectByName(TEXT("Camera"));					// Need to reconnect the pointer
+	if (this->Camera == nullptr)
+		MY_LOG(TEXT("Camera is null."));
 
 	APlayerController* PlayerController = Cast<APlayerController>(Controller);
 	if (PlayerController)
@@ -132,7 +136,6 @@ void ABaseCharacter::MoveFwd_Bwd(const float _axisValue)
 {
 	if ((this->Controller != nullptr) && (_axisValue != 0.0f) && !EnableRotateCamera)
 	{
-
 		const FRotator Rotation = this->Controller->GetControlRotation();					// Get the rotation
 		const FRotator YawRotation(0.0f, Rotation.Yaw, 0.0f);
 		const FVector Direction = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);		// Create forward vector
