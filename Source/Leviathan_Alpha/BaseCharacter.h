@@ -1,4 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+// Copyright 2021 Anthony Bill. All rights reserved.
 
 #pragma once
 
@@ -32,6 +32,7 @@ protected:
 	
 	virtual void Jump() override;
 	virtual void StopJumping() override;
+	void UpdateInAirState();
 
 	void ZoomIn();																					// Methods for positioning the camera while aiming
 	void ZoomOut();
@@ -49,6 +50,9 @@ private:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
 		class UCameraComponent* Camera;
+
+	UPROPERTY()
+		class UCharacterMovementComponent* pCharacterMovement;
 
 	UPROPERTY(VisibleAnywhere, Category = Camera)												// Can be used for rotation using gamepad or arrow keys
 		float BaseTurnRate;

@@ -1,4 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+// Copyright 2021 Anthony Bill. All rights reserved.
 
 #include "BaseCharacter.h"
 
@@ -22,12 +22,12 @@ ABaseCharacter::ABaseCharacter()
 	GetCapsuleComponent()->InitCapsuleSize(CapsuleRadius, CapsuleHalfHeight);		// Initialize the collision capsule around the character pawn
 
 	// ----- Set Character Characteristics
-	UCharacterMovementComponent* pMovement = GetCharacterMovement();
-	pMovement->bOrientRotationToMovement = true;									// This will make the character move in the direction of the rotation input
-	pMovement->RotationRate = FRotator(0.0f, 540.0f, 0.0f);							// The Rate at which the character will rotate in the direction of the input
-	pMovement->JumpZVelocity = 600.0f;												// The initial velocity of the character's jump
-	pMovement->AirControl = 0.2f;													// When falling, amount of lateral movement control available to the character. How much the character can move around the x,y plane while in the air.
-	pMovement->MaxWalkSpeed = 600.0f;
+	this->pCharacterMovement = GetCharacterMovement();
+	this->pCharacterMovement->bOrientRotationToMovement = true;						// This will make the character move in the direction of the rotation input
+	this->pCharacterMovement->RotationRate = FRotator(0.0f, 540.0f, 0.0f);			// The Rate at which the character will rotate in the direction of the input
+	this->pCharacterMovement->JumpZVelocity = 600.0f;								// The initial velocity of the character's jump
+	this->pCharacterMovement->AirControl = 0.2f;									// When falling, amount of lateral movement control available to the character. How much the character can move around the x,y plane while in the air.
+	this->pCharacterMovement->MaxWalkSpeed = 600.0f;
 	WalkingSpeed = 600.0f;
 	WalkSpeedWhileAiming = 300.0f;
 	ZoomRate = 20.0f;
@@ -79,23 +79,17 @@ void ABaseCharacter::BeginPlay()
 {
 	Super::BeginPlay();	
 	this->SpringArm = (USpringArmComponent*)GetDefaultSubobjectByName(TEXT("CameraBoom"));			// Need to reconnect the pointer
-	if(this->SpringArm == nullptr)
-		MY_LOG(TEXT("Spring Arm null."));
+	check(this->SpringArm);
 
 	this->Camera = (UCameraComponent*)GetDefaultSubobjectByName(TEXT("Camera"));					// Need to reconnect the pointer
-	if (this->Camera == nullptr)
-		MY_LOG(TEXT("Camera is null."));
+	check(this->Camera);
 
 	APlayerController* PlayerController = Cast<APlayerController>(Controller);
-	if (PlayerController)
-	{
-		if (PlayerController->PlayerCameraManager)
-		{
-			PlayerController->PlayerCameraManager->ViewPitchMin = this->MaxPitch; 
-			PlayerController->PlayerCameraManager->ViewPitchMax = this->MinPitch;
+	check(PlayerController);
+	check(PlayerController->PlayerCameraManager);
+	PlayerController->PlayerCameraManager->ViewPitchMin = this->MaxPitch; 
+	PlayerController->PlayerCameraManager->ViewPitchMax = this->MinPitch;
 
-		}
-	}
 
 }
 
@@ -103,6 +97,7 @@ void ABaseCharacter::BeginPlay()
 void ABaseCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+	this->UpdateInAirState();
 
 }
 
@@ -122,7 +117,7 @@ void ABaseCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompo
 
 	// ----- Set key for Jump Action
 	PlayerInputComponent->BindAction(TEXT("Jump"), EInputEvent::IE_Pressed, this, &ABaseCharacter::Jump);
-	PlayerInputComponent->BindAction(TEXT("Jump"), EInputEvent::IE_Released, this, &ABaseCharacter::StopJumping);
+	//PlayerInputComponent->BindAction(TEXT("Jump"), EInputEvent::IE_Released, this, &ABaseCharacter::StopJumping);
 
 	// ----- Set Movement key bindings 
 	PlayerInputComponent->BindAxis(TEXT("MoveFwd_Bwd"), this, &ABaseCharacter::MoveFwd_Bwd);
@@ -190,15 +185,27 @@ void ABaseCharacter::LookUp_Down(const float _axisValue)
 
 void ABaseCharacter::Jump()
 {
-	Super::Jump();
-	this->IsInAir = true;
+	if (!this->ZoomedIn && !this->EnableRotateCamera)
+	{
+		Super::Jump();
+		this->IsInAir = true;
 
+	}
 }
 
 void ABaseCharacter::StopJumping()
 {
 	Super::StopJumping();
 	this->IsInAir = false;
+
+}
+
+void ABaseCharacter::UpdateInAirState()
+{
+	//UCharacterMovementComponent* pMovement = this->GetCharacterMovement();
+	check(this->pCharacterMovement);
+	if (!this->pCharacterMovement->IsFalling())
+		this->IsInAir = false;
 
 }
 
@@ -212,22 +219,22 @@ void ABaseCharacter::StopJumping()
 void ABaseCharacter::ZoomIn()
 {
 	USpringArmComponent* pArm = GetCameraBoom();
-	if (pArm != nullptr && !this->EnableRotateCamera)										// Cannot zoom in if currently rotating around character
+	if (pArm != nullptr && !this->EnableRotateCamera && !this->IsInAir)										// Cannot zoom in if currently rotating around character
 	{
 
 		FVector forward = GetActorForwardVector();
 		pArm->TargetArmLength = SpringArmAimLength;
-		pArm->SocketOffset = FVector(0.0f, 60.0f, 70.0f);									// Change the socket offset to give a zoom in effect
+		pArm->SocketOffset = FVector(0.0f, 60.0f, 70.0f);													// Change the socket offset to give a zoom in effect
 		this->ZoomedIn = true;
 
 		UE_LOG(LogTemp, Warning, TEXT("Forward: %f, %f, %f."), forward.X, forward.Y, forward.Z);
 		MY_LOG(TEXT("Zoomed In."));
 
-		UCharacterMovementComponent* pMovement = GetCharacterMovement();
-		if (pMovement)
+		check(this->pCharacterMovement);
+		if (this->pCharacterMovement)
 		{
-			pMovement->MaxWalkSpeed = this->WalkSpeedWhileAiming;
-			pMovement->bOrientRotationToMovement = false;									// Changing this to false while zoomed prevents the character model from doing a small rotation in the direction of the input
+			this->pCharacterMovement->MaxWalkSpeed = this->WalkSpeedWhileAiming;
+			this->pCharacterMovement->bOrientRotationToMovement = false;									// Changing this to false while zoomed prevents the character model from doing a small rotation in the direction of the input
 
 		}
 		
@@ -249,11 +256,12 @@ void ABaseCharacter::ZoomOut()
 		this->ZoomedIn = false;
 
 		UE_LOG(LogTemp, Warning, TEXT("Zoomed Out."));
-		UCharacterMovementComponent* pMovement = GetCharacterMovement();
-		if (pMovement)
+
+		check(this->pCharacterMovement);
+		if (this->pCharacterMovement)
 		{
-			pMovement->MaxWalkSpeed = this->WalkingSpeed;
-			pMovement->bOrientRotationToMovement = true;									// Reset to allow the model to rotate with movement input
+			this->pCharacterMovement->MaxWalkSpeed = this->WalkingSpeed;
+			this->pCharacterMovement->bOrientRotationToMovement = true;									// Reset to allow the model to rotate with movement input
 
 		}
 	
@@ -267,7 +275,7 @@ void ABaseCharacter::ZoomOut()
 
 void ABaseCharacter::EnableRotation()
 {
-	if (!this->ZoomedIn)													// Cannot rotate around character if zoomed in	
+	if (!this->ZoomedIn && !this->IsInAir)													// Cannot rotate around character if zoomed in	
 	{
 		bUseControllerRotationYaw = false;													// This boolean enables the camera to rotate around the character
 		this->EnableRotateCamera = true;
@@ -275,6 +283,7 @@ void ABaseCharacter::EnableRotation()
 		this->privDebugCamAndPlayerPosition();
 
 	}
+
 }
 
 /*
