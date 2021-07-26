@@ -35,6 +35,7 @@ ABaseCharacter::ABaseCharacter()
 	MaxPitch = -55.0f;
 	MinPitch = 10.0f;
 	EnableRotateCamera = false;
+	IsInAir = false;
 
 	// ----- Camera Setup
 	this->SpringArm = CreateDefaultSubobject<USpringArmComponent>(TEXT("CameraBoom"));
@@ -120,7 +121,8 @@ void ABaseCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompo
 	PlayerInputComponent->BindAction(TEXT("RotateCamera"), EInputEvent::IE_Released, this, &ABaseCharacter::DisableRotation);
 
 	// ----- Set key for Jump Action
-	PlayerInputComponent->BindAction(TEXT("Jump"), EInputEvent::IE_Pressed, this, &ACharacter::Jump);
+	PlayerInputComponent->BindAction(TEXT("Jump"), EInputEvent::IE_Pressed, this, &ABaseCharacter::Jump);
+	PlayerInputComponent->BindAction(TEXT("Jump"), EInputEvent::IE_Released, this, &ABaseCharacter::StopJumping);
 
 	// ----- Set Movement key bindings 
 	PlayerInputComponent->BindAxis(TEXT("MoveFwd_Bwd"), this, &ABaseCharacter::MoveFwd_Bwd);
@@ -184,6 +186,20 @@ void ABaseCharacter::LookUp_Down(const float _axisValue)
 
 	}
 	
+}
+
+void ABaseCharacter::Jump()
+{
+	Super::Jump();
+	this->IsInAir = true;
+
+}
+
+void ABaseCharacter::StopJumping()
+{
+	Super::StopJumping();
+	this->IsInAir = false;
+
 }
 
 /*
@@ -251,7 +267,7 @@ void ABaseCharacter::ZoomOut()
 
 void ABaseCharacter::EnableRotation()
 {
-	if (!this->ZoomedIn)																	// Cannot rotate around character if zoomed in	
+	if (!this->ZoomedIn)													// Cannot rotate around character if zoomed in	
 	{
 		bUseControllerRotationYaw = false;													// This boolean enables the camera to rotate around the character
 		this->EnableRotateCamera = true;

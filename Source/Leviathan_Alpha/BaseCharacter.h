@@ -29,6 +29,9 @@ protected:
 	void MoveFwd_Bwd(const float _axisValue);
 	void MoveLeft_Right(const float _axisValue);
 	void LookUp_Down(const float _axisValue);
+	
+	virtual void Jump() override;
+	virtual void StopJumping() override;
 
 	void ZoomIn();																					// Methods for positioning the camera while aiming
 	void ZoomOut();
@@ -86,7 +89,9 @@ private:
 	UPROPERTY(EditAnywhere)
 		bool EnableRotateCamera;
 
+	UPROPERTY(EditAnywhere)
+		bool IsInAir;
+
 	// bool pad 0
-	// bool pad 1
 
 };
