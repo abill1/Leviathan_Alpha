@@ -33,7 +33,7 @@ ABaseCharacter::ABaseCharacter()
 	ZoomRate = 20.0f;
 	ZoomedIn = false;
 	MaxPitch = -55.0f;
-	MinPitch = 10.0f;
+	MinPitch = 20.0f;
 	EnableRotateCamera = false;
 	IsInAir = false;
 
@@ -81,7 +81,7 @@ void ABaseCharacter::BeginPlay()
 	this->SpringArm = (USpringArmComponent*)GetDefaultSubobjectByName(TEXT("CameraBoom"));			// Need to reconnect the pointer
 	check(this->SpringArm);
 
-	this->Camera = (UCameraComponent*)GetDefaultSubobjectByName(TEXT("Camera"));					// Need to reconnect the pointer
+	this->Camera = (UCameraComponent*)GetDefaultSubobjectByName(TEXT("Cam"));						// Need to reconnect the pointer
 	check(this->Camera);
 
 	APlayerController* PlayerController = Cast<APlayerController>(Controller);

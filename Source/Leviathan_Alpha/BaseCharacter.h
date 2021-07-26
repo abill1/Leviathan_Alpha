@@ -22,6 +22,9 @@ public:
 	/** Returns FollowCamera subobject **/
 	FORCEINLINE class UCameraComponent* GetFollowCamera() const { return Camera; }
 
+	UFUNCTION(BlueprintPure)
+		FORCEINLINE bool IsAiming() const { return ZoomedIn; }
+
 protected:
 	virtual void BeginPlay() override;																// Called when the game starts or when spawned
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;	// Called to bind functionality to input
