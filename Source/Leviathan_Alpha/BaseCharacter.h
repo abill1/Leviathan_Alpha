@@ -6,6 +6,10 @@
 #include "GameFramework/Character.h"
 #include "BaseCharacter.generated.h"
 
+// sizes
+// FVector		12
+//int size = sizeof(FVector);
+
 UCLASS(config=Game)
 class LEVIATHAN_ALPHA_API ABaseCharacter : public ACharacter
 {
@@ -46,13 +50,22 @@ protected:
 private:
 	void privDebugCamAndPlayerPosition() const;
 
-private:
+protected:
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Camera)
+		FVector AimingOffset;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Camera)
+		FRotator MeshRotatorForAim;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
 		class USpringArmComponent* SpringArm;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
 		class UCameraComponent* Camera;
+
+	UPROPERTY()
+		class USkeletalMeshComponent* pMesh;
 
 	UPROPERTY()
 		class UCharacterMovementComponent* pCharacterMovement;

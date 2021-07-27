@@ -5,6 +5,7 @@
 #include "Camera/CameraComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "Components/InputComponent.h"
+#include "Components/SkeletalMeshComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/Controller.h"
 #include "GameFramework/SpringArmComponent.h"
@@ -16,10 +17,14 @@ ABaseCharacter::ABaseCharacter()
 {
  	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
-	
+
+	// ----- Create Capsule component
 	CapsuleRadius = 42.0f;															// These should be dependent on the size of the mesh of the character
 	CapsuleHalfHeight = 96.0f;
 	GetCapsuleComponent()->InitCapsuleSize(CapsuleRadius, CapsuleHalfHeight);		// Initialize the collision capsule around the character pawn
+
+	// ----- Get Pointer to Mesh
+	this->pMesh = GetMesh();
 
 	// ----- Set Character Characteristics
 	this->pCharacterMovement = GetCharacterMovement();
@@ -28,14 +33,16 @@ ABaseCharacter::ABaseCharacter()
 	this->pCharacterMovement->JumpZVelocity = 600.0f;								// The initial velocity of the character's jump
 	this->pCharacterMovement->AirControl = 0.2f;									// When falling, amount of lateral movement control available to the character. How much the character can move around the x,y plane while in the air.
 	this->pCharacterMovement->MaxWalkSpeed = 600.0f;
-	WalkingSpeed = 600.0f;
-	WalkSpeedWhileAiming = 300.0f;
-	ZoomRate = 20.0f;
-	ZoomedIn = false;
-	MaxPitch = -55.0f;
-	MinPitch = 20.0f;
-	EnableRotateCamera = false;
-	IsInAir = false;
+	this->AimingOffset = FVector(0.0f, 60.0f, 70.0f);
+	this->MeshRotatorForAim = FRotator(0.0f, 20.0f, 0.0f);
+	this->WalkingSpeed = 600.0f;
+	this->WalkSpeedWhileAiming = 300.0f;
+	this->ZoomRate = 20.0f;
+	this->ZoomedIn = false;
+	this->MaxPitch = -55.0f;
+	this->MinPitch = 20.0f;
+	this->EnableRotateCamera = false;
+	this->IsInAir = false;
 
 	// ----- Camera Setup
 	this->SpringArm = CreateDefaultSubobject<USpringArmComponent>(TEXT("CameraBoom"));
@@ -90,7 +97,6 @@ void ABaseCharacter::BeginPlay()
 	PlayerController->PlayerCameraManager->ViewPitchMin = this->MaxPitch; 
 	PlayerController->PlayerCameraManager->ViewPitchMax = this->MinPitch;
 
-
 }
 
 // Called every frame
@@ -137,7 +143,7 @@ void ABaseCharacter::MoveFwd_Bwd(const float _axisValue)
 		const FRotator YawRotation(0.0f, Rotation.Yaw, 0.0f);
 		const FVector Direction = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);		// Create forward vector
 		this->AddMovementInput(Direction * _axisValue);										// Update movement with the forward vector
-		this->privDebugCamAndPlayerPosition();
+		//this->privDebugCamAndPlayerPosition();
 
 	}
 	
@@ -151,7 +157,7 @@ void ABaseCharacter::MoveLeft_Right(const float _axisValue)
 		const FRotator YawRotation(0.0f, Rotation.Yaw, 0.0f);
 		const FVector Direction = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);		// Create right vector
 		this->AddMovementInput(Direction * _axisValue);										// Update movement with the forward vector
-		this->privDebugCamAndPlayerPosition();
+		//this->privDebugCamAndPlayerPosition();
 
 	}
 
@@ -161,16 +167,16 @@ void ABaseCharacter::LookUp_Down(const float _axisValue)
 {
 	if (_axisValue != 0.0f)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("Axis Val: %f."), _axisValue);
+		//UE_LOG(LogTemp, Warning, TEXT("Axis Val: %f."), _axisValue);
 		APlayerController* pCont = CastChecked<APlayerController>(GetController());
 		if (pCont != nullptr && !pCont->IsLookInputIgnored())
 		{
 			float change = _axisValue * pCont->InputPitchScale;
-			UE_LOG(LogTemp, Warning, TEXT("PitchScale: %f."), pCont->InputPitchScale);
-			UE_LOG(LogTemp, Warning, TEXT("Change: %f."), change);
+			//UE_LOG(LogTemp, Warning, TEXT("PitchScale: %f."), pCont->InputPitchScale);
+			//UE_LOG(LogTemp, Warning, TEXT("Change: %f."), change);
 			pCont->RotationInput.Pitch += change;
-			UE_LOG(LogTemp, Warning, TEXT("New Pitch: %f."), pCont->RotationInput.Pitch);
-			UE_LOG(LogTemp, Warning, TEXT("---------------"));
+			//UE_LOG(LogTemp, Warning, TEXT("New Pitch: %f."), pCont->RotationInput.Pitch);
+			//UE_LOG(LogTemp, Warning, TEXT("---------------"));
 
 		}
 		else
@@ -219,24 +225,20 @@ void ABaseCharacter::UpdateInAirState()
 void ABaseCharacter::ZoomIn()
 {
 	USpringArmComponent* pArm = GetCameraBoom();
-	if (pArm != nullptr && !this->EnableRotateCamera && !this->IsInAir)										// Cannot zoom in if currently rotating around character
+	if (pArm != nullptr && !this->EnableRotateCamera && !this->IsInAir)								// Cannot zoom in if currently rotating around character
 	{
-
-		FVector forward = GetActorForwardVector();
 		pArm->TargetArmLength = SpringArmAimLength;
-		pArm->SocketOffset = FVector(0.0f, 60.0f, 70.0f);													// Change the socket offset to give a zoom in effect
+		pArm->SocketOffset = this->AimingOffset;													// Change the socket offset to give a zoom in effect
 		this->ZoomedIn = true;
 
-		UE_LOG(LogTemp, Warning, TEXT("Forward: %f, %f, %f."), forward.X, forward.Y, forward.Z);
+		check(this->pMesh);
+		this->pMesh->AddLocalRotation(this->MeshRotatorForAim, true);								// Need to rotate the mesh when zoomed in so that the barrel lines up with crosshair
+
 		MY_LOG(TEXT("Zoomed In."));
 
 		check(this->pCharacterMovement);
-		if (this->pCharacterMovement)
-		{
-			this->pCharacterMovement->MaxWalkSpeed = this->WalkSpeedWhileAiming;
-			this->pCharacterMovement->bOrientRotationToMovement = false;									// Changing this to false while zoomed prevents the character model from doing a small rotation in the direction of the input
-
-		}
+		this->pCharacterMovement->MaxWalkSpeed = this->WalkSpeedWhileAiming;
+		this->pCharacterMovement->bOrientRotationToMovement = false;							// Changing this to false while zoomed prevents the character model from doing a small rotation in the direction of the input
 		
 	}
 	else
@@ -255,13 +257,16 @@ void ABaseCharacter::ZoomOut()
 		pArm->SocketOffset = FVector(0.0f, 0.0f, 0.0f);
 		this->ZoomedIn = false;
 
+		check(this->pMesh);
+		this->pMesh->AddLocalRotation((this->MeshRotatorForAim * -1.0f), true);						// Rotate the mesh back to its zoomed out position *Note: FRotator does not have operator overload for negative sign (-). 
+
 		UE_LOG(LogTemp, Warning, TEXT("Zoomed Out."));
 
 		check(this->pCharacterMovement);
 		if (this->pCharacterMovement)
 		{
 			this->pCharacterMovement->MaxWalkSpeed = this->WalkingSpeed;
-			this->pCharacterMovement->bOrientRotationToMovement = true;									// Reset to allow the model to rotate with movement input
+			this->pCharacterMovement->bOrientRotationToMovement = true;								// Reset to allow the model to rotate with movement input
 
 		}
 	
