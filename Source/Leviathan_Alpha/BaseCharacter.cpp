@@ -2,6 +2,7 @@
 
 #include "BaseCharacter.h"
 
+#include "Animation/AnimMontage.h"
 #include "Camera/CameraComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "Components/InputComponent.h"
@@ -43,7 +44,7 @@ ABaseCharacter::ABaseCharacter()
 	this->MinPitch = 20.0f;
 	this->EnableRotateCamera = false;
 	this->IsInAir = false;
-
+	
 	// ----- Camera Setup
 	this->SpringArm = CreateDefaultSubobject<USpringArmComponent>(TEXT("CameraBoom"));
 	this->Camera = CreateDefaultSubobject<UCameraComponent>(TEXT("Cam"));
@@ -79,6 +80,12 @@ ABaseCharacter::ABaseCharacter()
 	bUseControllerRotationYaw = true;
 	bUseControllerRotationRoll = false;
 
+	// ----- Load Animation Data
+	static ConstructorHelpers::FObjectFinder<UAnimMontage> Montage(TEXT("AnimMontage'/Game/ExternalAssets/ParagonLtBelica/Characters/Heroes/Belica/Animations/LevelStart_Montage.LevelStart_Montage'"));
+	if (Montage.Succeeded())
+		this->BeginPlayMontage = Montage.Object;
+	this->InBeginPlay = true;
+
 }
 
 // Called when the game starts or when spawned
@@ -96,6 +103,8 @@ void ABaseCharacter::BeginPlay()
 	check(PlayerController->PlayerCameraManager);
 	PlayerController->PlayerCameraManager->ViewPitchMin = this->MaxPitch; 
 	PlayerController->PlayerCameraManager->ViewPitchMax = this->MinPitch;
+
+	this->PlayAnimMontage(this->BeginPlayMontage, 1.0f, FName("LevelStart"));
 
 }
 

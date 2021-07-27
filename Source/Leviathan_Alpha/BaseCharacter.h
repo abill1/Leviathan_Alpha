@@ -58,6 +58,9 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Camera)
 		FRotator MeshRotatorForAim;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Animation)
+		class UAnimMontage* BeginPlayMontage;
+
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
 		class USpringArmComponent* SpringArm;
 
@@ -112,6 +115,7 @@ protected:
 	UPROPERTY(EditAnywhere)
 		bool IsInAir;
 
-	// bool pad 0
+	UPROPERTY()
+		bool InBeginPlay;
 
 };
