@@ -80,10 +80,11 @@ ABaseCharacter::ABaseCharacter()
 	bUseControllerRotationYaw = true;
 	bUseControllerRotationRoll = false;
 
-	// ----- Load Animation Data
+	// ----- Load Animation Data: Currently this does not do anything other than allow me to get the duration of clip. Everything else is done in blueprints
 	static ConstructorHelpers::FObjectFinder<UAnimMontage> Montage(TEXT("AnimMontage'/Game/ExternalAssets/ParagonLtBelica/Characters/Heroes/Belica/Animations/LevelStart_Montage.LevelStart_Montage'"));
 	if (Montage.Succeeded())
 		this->BeginPlayMontage = Montage.Object;
+	
 	this->InBeginPlay = true;
 
 }
@@ -104,15 +105,36 @@ void ABaseCharacter::BeginPlay()
 	PlayerController->PlayerCameraManager->ViewPitchMin = this->MaxPitch; 
 	PlayerController->PlayerCameraManager->ViewPitchMax = this->MinPitch;
 
-	this->PlayAnimMontage(this->BeginPlayMontage, 1.0f, FName("LevelStart"));
+	this->IntroDuration = this->PlayAnimMontage(this->BeginPlayMontage, 1.0f, FName("LevelStart"));						// Returns the length of the montage and 0.0f upon failure
 
 }
 
-// Called every frame
+/* 
+* 
+* Note On IntroDuration:
+* ----- Allows the beginning montage to play. Very hacky. 
+* Really the character class needs to have a State context
+* that we can switch between so that the Tick method does not
+* need to check the duration once we are out of the begin play 
+* state.
+* 
+*/
 void ABaseCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 	this->UpdateInAirState();
+	
+	if (this->IntroDuration > 0.0f)
+	{
+		this->IntroDuration -= DeltaTime;
+		MY_LOG(TEXT("Montage Playing."));
+	}
+	else
+	{
+		this->InBeginPlay = false;
+		MY_LOG(TEXT("Montage Stopped."));
+
+	}
 
 }
 
@@ -166,7 +188,8 @@ void ABaseCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompo
 */
 void ABaseCharacter::MoveFwd_Bwd(const float _axisValue)
 {
-	if ((this->Controller != nullptr) && (_axisValue != 0.0f) && !EnableRotateCamera)
+	check(this->Controller);
+	if (!this->InBeginPlay && (_axisValue != 0.0f) && !EnableRotateCamera)
 	{
 		FRotator Rotation = this->Controller->GetControlRotation();
 		Rotation.Pitch -= Rotation.Pitch;
@@ -174,15 +197,15 @@ void ABaseCharacter::MoveFwd_Bwd(const float _axisValue)
 		
 		const FVector Direction = FRotationMatrix(Rotation).GetUnitAxis(EAxis::X);			// Create forward vector
 		this->AddMovementInput(Direction * _axisValue);										// Update movement with the forward vector
-		//this->privDebugCamAndPlayerPosition();
-
+		
 	}
 	
 }
 
 void ABaseCharacter::MoveLeft_Right(const float _axisValue)
 {
-	if ((this->Controller != nullptr) && (_axisValue != 0.0f) && !EnableRotateCamera)
+	check(this->Controller);
+	if (!this->InBeginPlay && (_axisValue != 0.0f) && !EnableRotateCamera)
 	{	
 		FRotator Rotation = this->Controller->GetControlRotation();
 		Rotation.Pitch -= Rotation.Pitch;
@@ -190,15 +213,14 @@ void ABaseCharacter::MoveLeft_Right(const float _axisValue)
 		
 		const FVector Direction = FRotationMatrix(Rotation).GetUnitAxis(EAxis::Y);			// Create right vector
 		this->AddMovementInput(Direction * _axisValue);										// Update movement with the forward vector
-		//this->privDebugCamAndPlayerPosition();
-
+		
 	}
 
 }
 
 void ABaseCharacter::LookUp_Down(const float _axisValue)
 {
-	if (_axisValue != 0.0f)
+	if (!this->InBeginPlay && _axisValue != 0.0f)
 	{
 		//UE_LOG(LogTemp, Warning, TEXT("Axis Val: %f."), _axisValue);
 		APlayerController* pCont = CastChecked<APlayerController>(GetController());
@@ -224,7 +246,7 @@ void ABaseCharacter::LookUp_Down(const float _axisValue)
 
 void ABaseCharacter::Jump()
 {
-	if (!this->ZoomedIn && !this->EnableRotateCamera)
+	if (!this->InBeginPlay && !this->ZoomedIn && !this->EnableRotateCamera)
 	{
 		Super::Jump();
 		this->IsInAir = true;
@@ -258,7 +280,8 @@ void ABaseCharacter::UpdateInAirState()
 void ABaseCharacter::ZoomIn()
 {
 	USpringArmComponent* pArm = GetCameraBoom();
-	if (pArm != nullptr && !this->EnableRotateCamera && !this->IsInAir)								// Cannot zoom in if currently rotating around character
+	check(pArm);
+	if (!this->InBeginPlay && !this->EnableRotateCamera && !this->IsInAir)								// Cannot zoom in if currently rotating around character
 	{
 		pArm->TargetArmLength = SpringArmAimLength;
 		pArm->SocketOffset = this->AimingOffset;													// Change the socket offset to give a zoom in effect
@@ -296,7 +319,6 @@ void ABaseCharacter::ZoomOut()
 
 		check(this->pCharacterMovement);
 		this->pCharacterMovement->MaxWalkSpeed = this->WalkingSpeed;							// Reset to allow the model to rotate with movement input
-
 	
 	}
 	else

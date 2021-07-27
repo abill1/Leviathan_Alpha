@@ -29,6 +29,9 @@ public:
 	UFUNCTION(BlueprintPure)
 		FORCEINLINE bool IsAiming() const { return ZoomedIn; }
 
+	UFUNCTION(BlueprintPure)
+		FORCEINLINE bool IsInBeginPlay() const { return InBeginPlay; }
+
 protected:
 	virtual void BeginPlay() override;																// Called when the game starts or when spawned
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;	// Called to bind functionality to input
@@ -105,6 +108,9 @@ protected:
 	
 	UPROPERTY(EditAnywhere)
 		float ZoomRate;
+
+	UPROPERTY()
+		float IntroDuration;
 
 	UPROPERTY(EditAnywhere)
 		bool ZoomedIn;
