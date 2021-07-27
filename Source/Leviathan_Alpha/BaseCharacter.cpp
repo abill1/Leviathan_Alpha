@@ -28,7 +28,7 @@ ABaseCharacter::ABaseCharacter()
 
 	// ----- Set Character Characteristics
 	this->pCharacterMovement = GetCharacterMovement();
-	this->pCharacterMovement->bOrientRotationToMovement = true;						// This will make the character move in the direction of the rotation input
+	this->pCharacterMovement->bOrientRotationToMovement = false;						// This will make the character move in the direction of the rotation input
 	this->pCharacterMovement->RotationRate = FRotator(0.0f, 540.0f, 0.0f);			// The Rate at which the character will rotate in the direction of the input
 	this->pCharacterMovement->JumpZVelocity = 600.0f;								// The initial velocity of the character's jump
 	this->pCharacterMovement->AirControl = 0.2f;									// When falling, amount of lateral movement control available to the character. How much the character can move around the x,y plane while in the air.
@@ -111,7 +111,6 @@ void ABaseCharacter::Tick(float DeltaTime)
 void ABaseCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
 	check(PlayerInputComponent);																	// An assert to ensure the Input Componet exists
-	//Super::SetupPlayerInputComponent(PlayerInputComponent);
 
 	// ----- Set Aiming controls
 	PlayerInputComponent->BindAction(TEXT("Aim"), EInputEvent::IE_Pressed, this, &ABaseCharacter::ZoomIn);
@@ -123,8 +122,7 @@ void ABaseCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompo
 
 	// ----- Set key for Jump Action
 	PlayerInputComponent->BindAction(TEXT("Jump"), EInputEvent::IE_Pressed, this, &ABaseCharacter::Jump);
-	//PlayerInputComponent->BindAction(TEXT("Jump"), EInputEvent::IE_Released, this, &ABaseCharacter::StopJumping);
-
+	
 	// ----- Set Movement key bindings 
 	PlayerInputComponent->BindAxis(TEXT("MoveFwd_Bwd"), this, &ABaseCharacter::MoveFwd_Bwd);
 	PlayerInputComponent->BindAxis(TEXT("MoveLeft_Right"), this, &ABaseCharacter::MoveLeft_Right);
@@ -135,13 +133,37 @@ void ABaseCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompo
 
 }
 
+/*
+* It would be nice if the AController class had a method to get a Rotator with just the 
+* Yaw rotation, or even a method to just get the Forward or right direction without having
+* to create all these temporary variables. 
+* 
+* Note: I tried editing the class in the source code, but it created all kinds of glitches 
+* for the controls.
+*
+* ------ 
+* Many of the Tutorials, and I think the sample code, use the following code to get the
+* FRotator used to find the direction of the Character:
+*		const FRotator Rotation = this->Controller->GetControlRotation();					// Get the rotation
+*		const FRotator YawRotation(0.0f, Rotation.Yaw, 0.0f);
+*
+* It is unnecessary to create anoter rotator object and it would be better practice to 
+* perform the math operations I use below. While one temporary object creation is not 
+* taxing on the cpu, a million do add up. This method still has more temporary variables 
+* than are ideal, but it is one step in the right direction.
+* 
+* Preferably, we would just get the forward and right vector from the controller.
+* 
+*/
 void ABaseCharacter::MoveFwd_Bwd(const float _axisValue)
 {
 	if ((this->Controller != nullptr) && (_axisValue != 0.0f) && !EnableRotateCamera)
 	{
-		const FRotator Rotation = this->Controller->GetControlRotation();					// Get the rotation
-		const FRotator YawRotation(0.0f, Rotation.Yaw, 0.0f);
-		const FVector Direction = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);		// Create forward vector
+		FRotator Rotation = this->Controller->GetControlRotation();
+		Rotation.Pitch -= Rotation.Pitch;
+		Rotation.Roll -= Rotation.Roll;
+		
+		const FVector Direction = FRotationMatrix(Rotation).GetUnitAxis(EAxis::X);			// Create forward vector
 		this->AddMovementInput(Direction * _axisValue);										// Update movement with the forward vector
 		//this->privDebugCamAndPlayerPosition();
 
@@ -152,10 +174,12 @@ void ABaseCharacter::MoveFwd_Bwd(const float _axisValue)
 void ABaseCharacter::MoveLeft_Right(const float _axisValue)
 {
 	if ((this->Controller != nullptr) && (_axisValue != 0.0f) && !EnableRotateCamera)
-	{
-		const FRotator Rotation = this->Controller->GetControlRotation();					// Get the rotation
-		const FRotator YawRotation(0.0f, Rotation.Yaw, 0.0f);
-		const FVector Direction = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);		// Create right vector
+	{	
+		FRotator Rotation = this->Controller->GetControlRotation();
+		Rotation.Pitch -= Rotation.Pitch;
+		Rotation.Roll -= Rotation.Roll;
+		
+		const FVector Direction = FRotationMatrix(Rotation).GetUnitAxis(EAxis::Y);			// Create right vector
 		this->AddMovementInput(Direction * _axisValue);										// Update movement with the forward vector
 		//this->privDebugCamAndPlayerPosition();
 
@@ -238,8 +262,7 @@ void ABaseCharacter::ZoomIn()
 
 		check(this->pCharacterMovement);
 		this->pCharacterMovement->MaxWalkSpeed = this->WalkSpeedWhileAiming;
-		this->pCharacterMovement->bOrientRotationToMovement = false;							// Changing this to false while zoomed prevents the character model from doing a small rotation in the direction of the input
-		
+						
 	}
 	else
 	{
@@ -263,12 +286,8 @@ void ABaseCharacter::ZoomOut()
 		UE_LOG(LogTemp, Warning, TEXT("Zoomed Out."));
 
 		check(this->pCharacterMovement);
-		if (this->pCharacterMovement)
-		{
-			this->pCharacterMovement->MaxWalkSpeed = this->WalkingSpeed;
-			this->pCharacterMovement->bOrientRotationToMovement = true;								// Reset to allow the model to rotate with movement input
+		this->pCharacterMovement->MaxWalkSpeed = this->WalkingSpeed;							// Reset to allow the model to rotate with movement input
 
-		}
 	
 	}
 	else
