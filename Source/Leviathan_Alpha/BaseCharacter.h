@@ -6,9 +6,8 @@
 #include "GameFramework/Character.h"
 #include "BaseCharacter.generated.h"
 
-// sizes
-// FVector		12
-//int size = sizeof(FVector);
+// Current Size of Class: 1536
+//int size = sizeof(ABaseCharacter);
 
 UCLASS(config=Game)
 class LEVIATHAN_ALPHA_API ABaseCharacter : public ACharacter
@@ -29,26 +28,23 @@ public:
 	UFUNCTION(BlueprintPure)
 		FORCEINLINE bool IsAiming() const { return ZoomedIn; }
 
-	UFUNCTION(BlueprintPure)
-		FORCEINLINE bool IsInBeginPlay() const { return InBeginPlay; }
+	virtual void MoveFwd_Bwd(const float _axisValue);
+	virtual void MoveLeft_Right(const float _axisValue);
+	virtual void LookUp_Down(const float _axisValue);
 
-protected:
-	virtual void BeginPlay() override;																// Called when the game starts or when spawned
-	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;	// Called to bind functionality to input
-
-	void MoveFwd_Bwd(const float _axisValue);
-	void MoveLeft_Right(const float _axisValue);
-	void LookUp_Down(const float _axisValue);
-	
 	virtual void Jump() override;
 	virtual void StopJumping() override;
 	void UpdateInAirState();
 
-	void ZoomIn();																					// Methods for positioning the camera while aiming
-	void ZoomOut();
-	
-	void EnableRotation();
-	void DisableRotation();
+	virtual void ZoomIn();																					// Methods for positioning the camera while aiming
+	virtual void ZoomOut();
+
+	virtual void EnableRotation();
+	virtual void DisableRotation();
+
+protected:
+	virtual void BeginPlay() override;																// Called when the game starts or when spawned
+	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;	// Called to bind functionality to input
 
 private:
 	void privDebugCamAndPlayerPosition() const;
@@ -60,9 +56,6 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Camera)
 		FRotator MeshRotatorForAim;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Animation)
-		class UAnimMontage* BeginPlayMontage;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
 		class USpringArmComponent* SpringArm;
@@ -109,9 +102,6 @@ protected:
 	UPROPERTY(EditAnywhere)
 		float ZoomRate;
 
-	UPROPERTY()
-		float IntroDuration;
-
 	UPROPERTY(EditAnywhere)
 		bool ZoomedIn;
 
@@ -120,8 +110,7 @@ protected:
 
 	UPROPERTY(EditAnywhere)
 		bool IsInAir;
-
-	UPROPERTY()
-		bool InBeginPlay;
+	
+	// Pad 0
 
 };

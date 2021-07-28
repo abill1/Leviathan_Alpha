@@ -2,7 +2,6 @@
 
 #include "BaseCharacter.h"
 
-#include "Animation/AnimMontage.h"
 #include "Camera/CameraComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "Components/InputComponent.h"
@@ -79,14 +78,7 @@ ABaseCharacter::ABaseCharacter()
 	bUseControllerRotationPitch = false;
 	bUseControllerRotationYaw = true;
 	bUseControllerRotationRoll = false;
-
-	// ----- Load Animation Data: Currently this does not do anything other than allow me to get the duration of clip. Everything else is done in blueprints
-	static ConstructorHelpers::FObjectFinder<UAnimMontage> Montage(TEXT("AnimMontage'/Game/ExternalAssets/ParagonLtBelica/Characters/Heroes/Belica/Animations/LevelStart_Montage.LevelStart_Montage'"));
-	if (Montage.Succeeded())
-		this->BeginPlayMontage = Montage.Object;
 	
-	this->InBeginPlay = true;
-
 }
 
 // Called when the game starts or when spawned
@@ -104,9 +96,7 @@ void ABaseCharacter::BeginPlay()
 	check(PlayerController->PlayerCameraManager);
 	PlayerController->PlayerCameraManager->ViewPitchMin = this->MaxPitch; 
 	PlayerController->PlayerCameraManager->ViewPitchMax = this->MinPitch;
-
-	this->IntroDuration = this->PlayAnimMontage(this->BeginPlayMontage, 1.0f, FName("LevelStart"));						// Returns the length of the montage and 0.0f upon failure
-
+	
 }
 
 /* 
@@ -124,18 +114,6 @@ void ABaseCharacter::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 	this->UpdateInAirState();
 	
-	if (this->IntroDuration > 0.0f)
-	{
-		this->IntroDuration -= DeltaTime;
-		MY_LOG(TEXT("Montage Playing."));
-	}
-	else
-	{
-		this->InBeginPlay = false;
-		MY_LOG(TEXT("Montage Stopped."));
-
-	}
-
 }
 
 // Called to bind functionality to input
@@ -189,7 +167,7 @@ void ABaseCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompo
 void ABaseCharacter::MoveFwd_Bwd(const float _axisValue)
 {
 	check(this->Controller);
-	if (!this->InBeginPlay && (_axisValue != 0.0f) && !EnableRotateCamera)
+	if ((_axisValue != 0.0f) && !this->EnableRotateCamera)
 	{
 		FRotator Rotation = this->Controller->GetControlRotation();
 		Rotation.Pitch -= Rotation.Pitch;
@@ -205,7 +183,7 @@ void ABaseCharacter::MoveFwd_Bwd(const float _axisValue)
 void ABaseCharacter::MoveLeft_Right(const float _axisValue)
 {
 	check(this->Controller);
-	if (!this->InBeginPlay && (_axisValue != 0.0f) && !EnableRotateCamera)
+	if ((_axisValue != 0.0f) && !this->EnableRotateCamera)
 	{	
 		FRotator Rotation = this->Controller->GetControlRotation();
 		Rotation.Pitch -= Rotation.Pitch;
@@ -220,7 +198,7 @@ void ABaseCharacter::MoveLeft_Right(const float _axisValue)
 
 void ABaseCharacter::LookUp_Down(const float _axisValue)
 {
-	if (!this->InBeginPlay && _axisValue != 0.0f)
+	if (_axisValue != 0.0f)
 	{
 		//UE_LOG(LogTemp, Warning, TEXT("Axis Val: %f."), _axisValue);
 		APlayerController* pCont = CastChecked<APlayerController>(GetController());
@@ -246,7 +224,7 @@ void ABaseCharacter::LookUp_Down(const float _axisValue)
 
 void ABaseCharacter::Jump()
 {
-	if (!this->InBeginPlay && !this->ZoomedIn && !this->EnableRotateCamera)
+	if (!this->ZoomedIn && !this->EnableRotateCamera)
 	{
 		Super::Jump();
 		this->IsInAir = true;
@@ -281,14 +259,14 @@ void ABaseCharacter::ZoomIn()
 {
 	USpringArmComponent* pArm = GetCameraBoom();
 	check(pArm);
-	if (!this->InBeginPlay && !this->EnableRotateCamera && !this->IsInAir)								// Cannot zoom in if currently rotating around character
+	if (!this->EnableRotateCamera && !this->IsInAir)										// Cannot zoom in if currently rotating around character
 	{
 		pArm->TargetArmLength = SpringArmAimLength;
-		pArm->SocketOffset = this->AimingOffset;													// Change the socket offset to give a zoom in effect
+		pArm->SocketOffset = this->AimingOffset;											// Change the socket offset to give a zoom in effect
 		this->ZoomedIn = true;
 
 		check(this->pMesh);
-		this->pMesh->AddLocalRotation(this->MeshRotatorForAim, true);								// Need to rotate the mesh when zoomed in so that the barrel lines up with crosshair
+		this->pMesh->AddLocalRotation(this->MeshRotatorForAim, true);						// Need to rotate the mesh when zoomed in so that the barrel lines up with crosshair
 
 		MY_LOG(TEXT("Zoomed In."));
 
@@ -313,7 +291,7 @@ void ABaseCharacter::ZoomOut()
 		this->ZoomedIn = false;
 
 		check(this->pMesh);
-		this->pMesh->AddLocalRotation((this->MeshRotatorForAim * -1.0f), true);						// Rotate the mesh back to its zoomed out position *Note: FRotator does not have operator overload for negative sign (-). 
+		this->pMesh->AddLocalRotation((this->MeshRotatorForAim * -1.0f), true);					// Rotate the mesh back to its zoomed out position *Note: FRotator does not have operator overload for negative sign (-). 
 
 		UE_LOG(LogTemp, Warning, TEXT("Zoomed Out."));
 
@@ -330,9 +308,9 @@ void ABaseCharacter::ZoomOut()
 
 void ABaseCharacter::EnableRotation()
 {
-	if (!this->ZoomedIn && !this->IsInAir)													// Cannot rotate around character if zoomed in	
+	if (!this->ZoomedIn && !this->IsInAir)														// Cannot rotate around character if zoomed in	
 	{
-		bUseControllerRotationYaw = false;													// This boolean enables the camera to rotate around the character
+		bUseControllerRotationYaw = false;														// This boolean enables the camera to rotate around the character
 		this->EnableRotateCamera = true;
 		MY_LOG(TEXT("Start Rotation."));
 		this->privDebugCamAndPlayerPosition();
