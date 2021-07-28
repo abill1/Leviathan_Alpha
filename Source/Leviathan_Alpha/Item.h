@@ -6,20 +6,19 @@
 #include "GameFramework/Actor.h"
 #include "Item.generated.h"
 
+UENUM()
+enum class PrimaryItemType : uint8
+{
+	WEAPON	UMETA(DisplayName="Weapon"),
+	AMMO	UMETA(DisplayName = "Ammo"),
+	POTION	UMETA(DisplayName = "Potion"),
+	OTHER	UMETA(DisplayName = "Other")
+};
+
 UCLASS()
 class LEVIATHAN_ALPHA_API AItem : public AActor
 {
 	GENERATED_BODY()
-
-public:
-	UENUM()
-		enum class PrimaryType : uint8
-	{
-		WEAPON,
-		AMMO,
-		POTION,
-		OTHER
-	};
 
 public:	
 	// Sets default values for this actor's properties
@@ -29,7 +28,7 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
-	FORCEINLINE AItem::PrimaryType GetPrimaryType() const { return primary; }
+	FORCEINLINE PrimaryItemType GetPrimaryType() const { return primary; }
 	FORCEINLINE float GetWeight() const { return weight; }
 
 protected:
@@ -41,6 +40,6 @@ protected:
 		float weight;
 
 	UPROPERTY(EditAnywhere)
-		PrimaryType primary;
+		TEnumAsByte<PrimaryItemType> primary;
 
 };
