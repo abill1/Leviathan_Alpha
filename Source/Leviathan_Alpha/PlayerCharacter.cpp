@@ -119,7 +119,7 @@ void APlayerCharacter::MoveFwd_Bwd(const float _axisValue)
 		FRotator Rotation = this->Controller->GetControlRotation();
 		Rotation.Pitch -= Rotation.Pitch;
 		Rotation.Roll -= Rotation.Roll;
-
+		
 		const FVector Direction = FRotationMatrix(Rotation).GetUnitAxis(EAxis::X);			// Create forward vector
 		this->AddMovementInput(Direction * _axisValue);										// Update movement with the forward vector
 		
@@ -147,17 +147,11 @@ void APlayerCharacter::LookUp_Down(const float _axisValue)
 {
 	if (!this->InBeginPlay && _axisValue != 0.0f)
 	{
-		//UE_LOG(LogTemp, Warning, TEXT("Axis Val: %f."), _axisValue);
 		APlayerController* pCont = CastChecked<APlayerController>(GetController());
 		if (pCont != nullptr && !pCont->IsLookInputIgnored())
 		{
 			float change = _axisValue * pCont->InputPitchScale;
-			//UE_LOG(LogTemp, Warning, TEXT("PitchScale: %f."), pCont->InputPitchScale);
-			//UE_LOG(LogTemp, Warning, TEXT("Change: %f."), change);
 			pCont->RotationInput.Pitch += change;
-			//UE_LOG(LogTemp, Warning, TEXT("New Pitch: %f."), pCont->RotationInput.Pitch);
-			//UE_LOG(LogTemp, Warning, TEXT("---------------"));
-
 		}
 		else
 		{
