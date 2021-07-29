@@ -40,3 +40,27 @@ void AGun::Tick(float DeltaSeconds)
 
 }
 
+void AGun::Reload()
+{
+	if ((this->TotalAmmo) && (this->LoadedAmmo < this->ClipSize))	// If Ammo remains and the gun is not fully loaded
+	{
+		int32 neededAmmo = this->ClipSize - this->LoadedAmmo;		// Find how many rounds are needed to refill
+
+		if (neededAmmo > this->TotalAmmo)							// If the amount needed exceeds the total ammo remaining
+		{
+			this->LoadedAmmo += this->TotalAmmo;					// Just add whatever remains
+			this->TotalAmmo = 0;									// Zero out the remaining ammo
+
+		}
+		else
+		{
+			this->TotalAmmo -= neededAmmo;							// Remove the amount needed to refill from total
+			this->LoadedAmmo = this->ClipSize;						// The amount will be reset to the max
+		
+		}
+
+		// ----- Trigger Reload Sound
+
+	}
+
+}
