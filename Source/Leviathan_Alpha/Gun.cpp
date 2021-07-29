@@ -60,6 +60,7 @@ void AGun::Reload()
 		}
 
 		// ----- Trigger Reload Sound
+		UGameplayStatics::SpawnSoundAttached(this->ReloadSound, this->Mesh, this->mReloadSocket_Str);
 
 	}
 
