@@ -40,11 +40,11 @@ private:
 protected:
 
 	UPROPERTY(EditAnywhere)
-		uint32 Damage;
+		int32 Damage;
 
 	UPROPERTY(EditAnywhere)
 		TEnumAsByte<WeaponType> WeaponSubtype;
 
-	static const uint32 EMPTY;
+	static const int32 EMPTY;
 
 };

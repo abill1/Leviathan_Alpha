@@ -3,7 +3,7 @@
 
 #include "Weapon.h"
 
-const uint32 AWeapon::EMPTY = 0;
+const int32 AWeapon::EMPTY = 0;
 
 AWeapon::AWeapon()
 {

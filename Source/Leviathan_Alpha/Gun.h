@@ -33,6 +33,8 @@ public:
 	void PullTrigger();
 	void Reload();
 	
+	UFUNCTION(BlueprintPure)
+		
 	FORCEINLINE bool IsEmpty() const { return CurrentAmmo == AWeapon::EMPTY; }
 
 protected:
@@ -81,10 +83,10 @@ protected:
 		float MaxRange;
 
 	UPROPERTY(EditAnywhere)
-		uint32 ClipSize;
+		int32 ClipSize;
 
 	UPROPERTY()
-		uint32 CurrentAmmo;
+		int32 CurrentAmmo;
 
 	UPROPERTY(EditAnywhere)
 		TEnumAsByte<GunType> GunSubType;
