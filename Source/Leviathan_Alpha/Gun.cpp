@@ -119,6 +119,22 @@ void AGun::Reload()
 
 }
 
+bool AGun::AddAmmo(const int32 _AmmoPickedUp)
+{
+	bool bLoaded = false;								// Can be used later to determine whether to remove the ammo item from the world
+
+	if (this->TotalAmmo < this->MaxAmmo)				// If the player does not have full ammo, then pick up the ammo
+	{
+		this->TotalAmmo += _AmmoPickedUp;
+		if (this->TotalAmmo >= this->MaxAmmo)			// Only allow the player to pick up to the max
+			this->TotalAmmo = this->MaxAmmo;
+		bLoaded = true;									// Remove the ammo pickup even if it exceeded max
+	
+	}
+
+	return bLoaded;
+}
+
 void AGun::privUpdateGunOwner()
 {
 	this->pGunOwner = (APawn*)GetOwner();

@@ -43,6 +43,8 @@ public:
 	void PullTrigger();
 	void Reload();
 
+	bool AddAmmo(const int32 _AmmoPickedUp);
+
 	FORCEINLINE UFUNCTION(BlueprintPure)
 		int32 GetLoadedCount() const { return LoadedAmmo; }
 	FORCEINLINE UFUNCTION(BlueprintPure)
