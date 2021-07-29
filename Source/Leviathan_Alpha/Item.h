@@ -15,6 +15,12 @@ enum class PrimaryItemType : uint8
 	OTHER	UMETA(DisplayName = "Other")
 };
 
+/*
+* This class serves as the basis for all items the player can 
+* add to their inventory. With this base class we can later create 
+* a tree to store and sort the player's inventory. 
+* 
+*/
 UCLASS()
 class LEVIATHAN_ALPHA_API AItem : public AActor
 {
