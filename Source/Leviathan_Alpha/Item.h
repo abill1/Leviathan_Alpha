@@ -46,6 +46,6 @@ protected:
 		float weight;
 
 	UPROPERTY(EditAnywhere)
-		TEnumAsByte<PrimaryItemType> primary;
+		PrimaryItemType primary;
 
 };

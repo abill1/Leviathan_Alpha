@@ -18,6 +18,14 @@ enum class GunType : uint8
 
 
 /**
+ * Question: Who should own the total ammo? The player will technically own it 
+ * in their inventory, however, it would be faster for the gun to own it. 
+ * 
+ * I think for games like Mass Effect, Uncharted, or Tomb Raider the ammo is 
+ * tied to the weapon; whereas, for a game like Resident Evil, several guns 
+ * can use the same ammo type so the ammo is stored in the player inventory.
+ * This style makes ammo more of a resource to manage. I think the first method
+ * is more like the style I am going for. 
  * 
  */
 UCLASS()
@@ -32,10 +40,14 @@ public:
 
 	void PullTrigger();
 	void Reload();
-	
-	UFUNCTION(BlueprintPure)
-		
-	FORCEINLINE bool IsEmpty() const { return CurrentAmmo == AWeapon::EMPTY; }
+
+	FORCEINLINE UFUNCTION(BlueprintPure)
+		int32 GetLoadedCount() const { return LoadedAmmo; }
+	FORCEINLINE UFUNCTION(BlueprintPure)
+		int32 GetTotalCount() const { return TotalAmmo; }
+
+	FORCEINLINE bool IsEmpty() const { return LoadedAmmo == AWeapon::EMPTY; }
+	FORCEINLINE bool IsOutOfAmmo() const { return TotalAmmo == AWeapon::EMPTY; }
 
 protected:
 	virtual void BeginPlay() override;
@@ -86,9 +98,12 @@ protected:
 		int32 ClipSize;
 
 	UPROPERTY()
-		int32 CurrentAmmo;
+		int32 TotalAmmo;
+
+	UPROPERTY()
+		int32 LoadedAmmo;
 
 	UPROPERTY(EditAnywhere)
-		TEnumAsByte<GunType> GunSubType;
+		GunType GunSubType;
 
 };

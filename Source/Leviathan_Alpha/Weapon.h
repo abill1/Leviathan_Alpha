@@ -43,7 +43,7 @@ protected:
 		int32 Damage;
 
 	UPROPERTY(EditAnywhere)
-		TEnumAsByte<WeaponType> WeaponSubtype;
+		WeaponType WeaponSubtype;
 
 	static const int32 EMPTY;
 

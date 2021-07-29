@@ -22,7 +22,8 @@ AGun::AGun()
 	// ----- Initialize Characteristics 
 	this->MaxRange = 100.0f;	// 1 meter == 100.0f
 	this->ClipSize = 1;
-	this->CurrentAmmo = 0;
+	this->TotalAmmo = 0;
+	this->LoadedAmmo = 0;
 	this->GunSubType = GunType::OTHER;
 
 }
