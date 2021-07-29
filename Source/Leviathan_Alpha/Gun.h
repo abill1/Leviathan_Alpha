@@ -27,6 +27,8 @@ enum class GunType : uint8
  * This style makes ammo more of a resource to manage. I think the first method
  * is more like the style I am going for. 
  * 
+ * Guns could also use the state pattern. At least Ready and Out of Ammo. 
+ * 
  */
 UCLASS()
 class LEVIATHAN_ALPHA_API AGun : public AWeapon
@@ -52,12 +54,25 @@ public:
 protected:
 	virtual void BeginPlay() override;
 
+private:
+	void privUpdateGunOwner();
+	void privUpdateController();
+	void privUpdateWorld();
+	void privUpdateCamLocationRotation();
+	void privUpdateEndPoint();
+	void privUpdateCollisionParams();
+	void privSpawnMuzzleFlash();
+	void privSpawnHitTargetEmitter();
+	void privDealDamage();
+	bool privCheckHit();
+
 protected:
 
 	FCollisionQueryParams mParams;
 	FHitResult mHitResult;
 	FVector mCamLocation;
 	FRotator mCamRotator;
+	FVector mRotationVector;
 	FVector	mEndPoint;
 	FVector mShotDirection;
 	FTransform mSpawnTransform;
@@ -86,6 +101,9 @@ protected:
 		UParticleSystem* BulletHitTarget;
 
 	UPROPERTY(EditAnywhere)
+		USoundBase* MuzzleSound;
+
+	UPROPERTY(EditAnywhere)
 		USoundBase* ReloadSound;
 
 	UPROPERTY(EditAnywhere)
@@ -102,6 +120,9 @@ protected:
 
 	UPROPERTY()
 		int32 LoadedAmmo;
+
+	UPROPERTY(EditAnywhere)
+		int32 MaxAmmo;
 
 	UPROPERTY(EditAnywhere)
 		GunType GunSubType;
