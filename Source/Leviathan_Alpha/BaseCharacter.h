@@ -41,6 +41,11 @@ public:
 
 	virtual void EnableRotation();
 	virtual void DisableRotation();
+	
+	float TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser) override;
+	UFUNCTION(BlueprintPure)
+		bool IsDead() const;
+
 
 protected:
 	virtual void BeginPlay() override;																// Called when the game starts or when spawned
@@ -48,6 +53,7 @@ protected:
 
 private:
 	void privDebugCamAndPlayerPosition() const;
+	void privSetDeadState();
 
 protected:
 
@@ -101,6 +107,12 @@ protected:
 	
 	UPROPERTY(EditAnywhere)
 		float ZoomRate;
+
+	UPROPERTY(EditAnywhere)
+		float MaxHealth;
+
+	UPROPERTY(VisibleAnywhere)
+		float CurrentHealth;
 
 	UPROPERTY(EditAnywhere)
 		bool ZoomedIn;

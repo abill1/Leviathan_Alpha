@@ -1,6 +1,7 @@
 // Copyright 2021 Anthony Bill. All rights reserved.
 
 #include "BaseCharacter.h"
+#include "Leviathan_AlphaGameModeBase.h"
 
 #include "Camera/CameraComponent.h"
 #include "Components/CapsuleComponent.h"
@@ -43,7 +44,9 @@ ABaseCharacter::ABaseCharacter()
 	this->MinPitch = 20.0f;
 	this->EnableRotateCamera = false;
 	this->IsInAir = false;
-	
+	this->MaxHealth = 100.0f;
+	this->CurrentHealth = this->MaxHealth;
+
 	// ----- Camera Setup
 	this->SpringArm = CreateDefaultSubobject<USpringArmComponent>(TEXT("CameraBoom"));
 	this->Camera = CreateDefaultSubobject<UCameraComponent>(TEXT("Cam"));
@@ -91,11 +94,7 @@ void ABaseCharacter::BeginPlay()
 	this->Camera = (UCameraComponent*)GetDefaultSubobjectByName(TEXT("Cam"));						// Need to reconnect the pointer
 	check(this->Camera);
 
-	APlayerController* PlayerController = Cast<APlayerController>(Controller);
-	check(PlayerController);
-	check(PlayerController->PlayerCameraManager);
-	PlayerController->PlayerCameraManager->ViewPitchMin = this->MaxPitch; 
-	PlayerController->PlayerCameraManager->ViewPitchMax = this->MinPitch;
+	
 	
 }
 
@@ -332,6 +331,38 @@ void ABaseCharacter::DisableRotation()
 	this->EnableRotateCamera = false;
 	this->privDebugCamAndPlayerPosition();
 	MY_LOG(TEXT("Stop Rotation."));
+
+}
+
+float ABaseCharacter::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser)
+{
+	float DamageToApply = Super::TakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser);		// Get Parent Calculation of Damage --- look if necessary later
+	this->CurrentHealth -= DamageToApply;
+
+	if (this->CurrentHealth < 0.0f)
+		this->CurrentHealth = 0.0f;
+
+	UE_LOG(LogTemp, Warning, TEXT("Health Left %f"), this->CurrentHealth);
+
+	if (this->IsDead())
+		this->privSetDeadState();
+
+	return DamageToApply;
+}
+
+bool ABaseCharacter::IsDead() const
+{
+	return this->CurrentHealth <= 0.0f;
+}
+
+void ABaseCharacter::privSetDeadState()
+{
+	MY_LOG(TEXT("Character Died"));
+	//ALeviathan_AlphaGameModeBase* pGameMode = GetWorld()->GetAuthGameMode<ALeviathan_AlphaGameModeBase>();
+	//if (pGameMode)
+		//pGameMode->PawnKilled(this);
+	DetachFromControllerPendingDestroy();										// Stop character from aiming or moving
+	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);	// Remove Collision Capsule
 
 }
 

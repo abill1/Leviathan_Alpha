@@ -24,10 +24,12 @@ AGun::AGun()
 	// ----- Initialize Characteristics 
 	this->MaxRange = 100.0f;	// 1 meter == 100.0f
 	this->ClipSize = 1;
-	this->TotalAmmo = 0;
+	this->TotalAmmo = 100;
 	this->LoadedAmmo = 0;
 	this->MaxAmmo = 1;
 	this->GunSubType = GunType::OTHER;
+	this->mMuzzleSocket_Str = TEXT("SMG_Barrel");
+	this->mReloadSocket_Str = TEXT("SMG_clipSocket");
 
 }
 
@@ -182,7 +184,9 @@ void AGun::privUpdateCollisionParams()
 
 void AGun::privSpawnMuzzleFlash()
 {
-	UGameplayStatics::SpawnEmitterAttached(this->MuzzleFlash, this->Mesh, this->mMuzzleSocket_Str);	// Add the partical effect to the muzzle socket of the rifle --- This will make it look like the gun has fired when the condition is met
+	FVector loc = this->Mesh->GetRelativeLocation();
+	loc += FVector(-5.0f, 12.0f, 0.0f);
+	UGameplayStatics::SpawnEmitterAttached(this->MuzzleFlash, this->Mesh, this->mMuzzleSocket_Str, loc);	// Add the partical effect to the muzzle socket of the rifle --- This will make it look like the gun has fired when the condition is met
 	UGameplayStatics::SpawnSoundAttached(this->MuzzleSound, this->Mesh, this->mMuzzleSocket_Str);
 
 }

@@ -40,8 +40,8 @@ public:
 public:
 	virtual void Tick(float DeltaSeconds) override;
 
-	void PullTrigger();
-	void Reload();
+	virtual void PullTrigger();
+	virtual void Reload();
 
 	bool AddAmmo(const int32 _AmmoPickedUp);
 

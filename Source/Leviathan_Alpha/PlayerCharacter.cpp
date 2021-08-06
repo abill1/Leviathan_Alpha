@@ -6,6 +6,8 @@
 #include "Animation/AnimMontage.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/SpringArmComponent.h"
+#include "Weapon.h"
+#include "Rifle.h"
 
 #define MY_LOG(x) UE_LOG(LogTemp, Warning, x);
 
@@ -23,7 +25,23 @@ APlayerCharacter::APlayerCharacter()
 void APlayerCharacter::BeginPlay()
 {
 	Super::BeginPlay();
+	APlayerController* PlayerController = Cast<APlayerController>(Controller);
+	check(PlayerController);
+	check(PlayerController->PlayerCameraManager);
+	PlayerController->PlayerCameraManager->ViewPitchMin = this->MaxPitch;
+	PlayerController->PlayerCameraManager->ViewPitchMax = this->MinPitch;
+
+	this->Primary = GetWorld()->SpawnActor<AWeapon>(WeaponClass);
+	this->Equipped = this->Primary;
+	this->pMesh->HideBoneByName(TEXT("Weapon"), EPhysBodyOp::PBO_None);
+	this->Equipped->AttachToComponent(this->pMesh, FAttachmentTransformRules::KeepRelativeTransform, TEXT("weaponSocket"));
+	this->Equipped->SetOwner(this);
+
 	this->IntroDuration = this->PlayAnimMontage(this->BeginPlayMontage, 1.0f, FName("LevelStart"));						// Returns the length of the montage and 0.0f upon failure
+
+	
+	// Reload the weapon at the start of play
+
 
 }
 
@@ -41,12 +59,12 @@ void APlayerCharacter::Tick(float DeltaSeconds)
 	if (this->IntroDuration > 0.0f)
 	{
 		this->IntroDuration -= DeltaSeconds;
-		MY_LOG(TEXT("Montage Playing."));
+		//MY_LOG(TEXT("Montage Playing."));
 	}
 	else
 	{
 		this->InBeginPlay = false;
-		MY_LOG(TEXT("Montage Stopped."));
+		//MY_LOG(TEXT("Montage Stopped."));
 
 	}
 
@@ -66,6 +84,9 @@ void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 
 	// ----- Set key for Jump Action
 	PlayerInputComponent->BindAction(TEXT("Jump"), EInputEvent::IE_Pressed, this, &APlayerCharacter::Jump);
+
+	// ----- Set Attack Action
+	PlayerInputComponent->BindAction(TEXT("Attack"), EInputEvent::IE_Pressed, this, &APlayerCharacter::Attack);
 
 	// ----- Set Movement key bindings 
 	PlayerInputComponent->BindAxis(TEXT("MoveFwd_Bwd"), this, &APlayerCharacter::MoveFwd_Bwd);
@@ -204,5 +225,12 @@ void APlayerCharacter::ZoomIn()
 	{
 		UE_LOG(LogTemp, Warning, TEXT("Failed Zoomed In."));
 	}
+
+}
+
+void APlayerCharacter::Attack()
+{
+	this->Equipped->Attack();
+	MY_LOG(TEXT("Player Attack"));
 
 }

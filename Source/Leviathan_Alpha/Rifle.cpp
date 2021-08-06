@@ -24,3 +24,14 @@ void ARifle::Tick(float DeltaSeconds)
 
 }
 
+void ARifle::Attack()
+{
+	this->PullTrigger();
+
+}
+
+void ARifle::PullTrigger()
+{
+	Super::PullTrigger();
+
+}

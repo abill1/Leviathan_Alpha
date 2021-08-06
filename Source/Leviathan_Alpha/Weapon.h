@@ -29,6 +29,7 @@ public:
 
 public:
 	virtual void Tick(float DeltaSeconds) override;
+	virtual void Attack();
 
 	FORCEINLINE WeaponType GetWeaponType() const { return WeaponSubtype; }
 

@@ -16,6 +16,8 @@ class LEVIATHAN_ALPHA_API ARifle : public AGun
 
 public:
 	ARifle();
+	void Attack() override;
+	void PullTrigger() override;
 
 public:
 	virtual void Tick(float DeltaSeconds) override;

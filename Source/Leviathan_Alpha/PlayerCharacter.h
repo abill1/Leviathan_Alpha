@@ -6,6 +6,8 @@
 #include "BaseCharacter.h"
 #include "PlayerCharacter.generated.h"
 
+class AWeapon;
+
 // Current Size of Class: 1584
 //int size = sizeof(APlayerCharacter);
 
@@ -30,6 +32,8 @@ public:
 	virtual void Jump() override;
 	virtual void ZoomIn();
 
+	void Attack();
+
 protected:
 	virtual void BeginPlay() override;																// Called when the game starts or when spawned
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;	// Called to bind functionality to input
@@ -37,6 +41,15 @@ protected:
 private:
 
 protected:
+
+	UPROPERTY(EditDefaultsOnly)
+		TSubclassOf<AWeapon> WeaponClass;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Weapon)
+		class AWeapon* Equipped;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Weapon)
+		class AWeapon* Primary;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Animation)
 		class UAnimMontage* BeginPlayMontage;

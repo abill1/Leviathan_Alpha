@@ -27,3 +27,8 @@ void AWeapon::Tick(float DeltaSeconds)
 
 }
 
+void AWeapon::Attack()
+{
+
+}
+
