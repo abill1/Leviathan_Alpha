@@ -2,13 +2,23 @@
 
 #pragma once
 
-#include "CoreMinimal.h"
+#include "SlateBasics.h"
+#include "SlateExtras.h"
 
 /**
  * 
  */
-class LEVIATHAN_ALPHA_API SMainMenuWidget
+class SMainMenuWidget : public SCompoundWidget
 {
 public:
+	SLATE_BEGIN_ARGS(SMainMenuWidget) {}
+	SLATE_ARGUMENT(TWeakObjectPtr<class AMainMenuHUD>, OwningHUD)
+	SLATE_END_ARGS()
+
+	/** Needed for every widget. Initializes the widget. */
+	void Construct(const FArguments& InArgs);
+
+public:
+	TWeakObjectPtr<class AMainMenuHUD> OwningHUD;				// This HUD creates the widget
 
 };
