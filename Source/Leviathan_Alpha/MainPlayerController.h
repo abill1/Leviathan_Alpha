@@ -13,5 +13,9 @@ UCLASS()
 class LEVIATHAN_ALPHA_API AMainPlayerController : public APlayerController
 {
 	GENERATED_BODY()
-	
+protected:
+	AMainPlayerController();
+	virtual void SetupInputComponent() override;
+	void OpenMenu();
+
 };

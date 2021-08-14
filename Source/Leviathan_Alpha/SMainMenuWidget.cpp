@@ -71,7 +71,12 @@ bool SMainMenuWidget::SupportsKeyboardFocus() const
 
 FReply SMainMenuWidget::OnNewGameClicked() const
 {
-	
+	if (OwningHUD.IsValid())
+	{
+		OwningHUD->RemoveMenu();
+
+	}
+
 	return FReply::Handled();
 }
 

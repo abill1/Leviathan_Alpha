@@ -14,6 +14,10 @@ class LEVIATHAN_ALPHA_API AMainMenuHUD : public AHUD
 {
 	GENERATED_BODY()
 
+public:
+	void ShowMenu();
+	void RemoveMenu();
+
 protected:
 	virtual void BeginPlay() override;
 
