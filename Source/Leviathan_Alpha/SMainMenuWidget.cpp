@@ -2,6 +2,8 @@
 
 
 #include "SMainMenuWidget.h"
+#include "MainMenuHUD.h"
+#include "GameFramework/PlayerController.h"
 
 /* SNew is used to create new slate widgets */
 #define LOCTEXT_NAMESPACE "MainMenu"
@@ -45,7 +47,7 @@ void SMainMenuWidget::Construct(const FArguments& InArgs)
 			// ----- New Game Button -----
 			+ SVerticalBox::Slot()
 			[
-				SNew(SButton)[SNew(STextBlock).Font(ButtonFont).Text(sNewGame).Justification(ETextJustify::Center)]
+				SNew(SButton).OnClicked(this, &SMainMenuWidget::OnNewGameClicked)[SNew(STextBlock).Font(ButtonFont).Text(sNewGame).Justification(ETextJustify::Center)]
 			]
 			// ----- Settings Button -----
 			+ SVerticalBox::Slot()
@@ -55,7 +57,7 @@ void SMainMenuWidget::Construct(const FArguments& InArgs)
 			// ----- Quit Game Button -----
 			+ SVerticalBox::Slot()
 			[
-				SNew(SButton)[SNew(STextBlock).Font(ButtonFont).Text(sMainTitle).Justification(ETextJustify::Center)]
+				SNew(SButton).OnClicked(this, &SMainMenuWidget::OnQuitGameClicked)[SNew(STextBlock).Font(ButtonFont).Text(sMainTitle).Justification(ETextJustify::Center)]
 			]
 		]
 	];
@@ -65,6 +67,24 @@ void SMainMenuWidget::Construct(const FArguments& InArgs)
 bool SMainMenuWidget::SupportsKeyboardFocus() const
 {
 	return true;
+}
+
+FReply SMainMenuWidget::OnNewGameClicked() const
+{
+	
+	return FReply::Handled();
+}
+
+FReply SMainMenuWidget::OnQuitGameClicked() const
+{
+	if (OwningHUD.IsValid())
+	{
+		APlayerController* pController = OwningHUD->PlayerOwner;
+		if (pController)
+			pController->ConsoleCommand("quit");
+	}
+
+	return FReply::Handled();
 }
 
 #undef LOCTEXT_NAMESPACE
