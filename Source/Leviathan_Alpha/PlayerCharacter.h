@@ -54,6 +54,9 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Animation)
 		class UAnimMontage* BeginPlayMontage;
 	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = HUD)
+		class APlayerHUD* HUD;
+
 	UPROPERTY()
 		float IntroDuration;
 

@@ -7,7 +7,8 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "Weapon.h"
-#include "Rifle.h"
+#include "Gun.h"
+#include "PlayerHUD.h"
 
 #define MY_LOG(x) UE_LOG(LogTemp, Warning, x);
 
@@ -19,7 +20,8 @@ APlayerCharacter::APlayerCharacter()
 		this->BeginPlayMontage = Montage.Object;
 
 	this->InBeginPlay = true;
-
+	//this->HUD = CreateDefaultSubobject<APlayerHUD>(TEXT("HUD"));
+	
 }
 
 void APlayerCharacter::BeginPlay()
@@ -38,7 +40,7 @@ void APlayerCharacter::BeginPlay()
 	this->Equipped->SetOwner(this);
 
 	this->IntroDuration = this->PlayAnimMontage(this->BeginPlayMontage, 1.0f, FName("LevelStart"));						// Returns the length of the montage and 0.0f upon failure
-
+	((AGun*)this->Equipped)->Reload();
 	
 	// Reload the weapon at the start of play
 
@@ -64,8 +66,7 @@ void APlayerCharacter::Tick(float DeltaSeconds)
 	else
 	{
 		this->InBeginPlay = false;
-		//MY_LOG(TEXT("Montage Stopped."));
-
+		
 	}
 
 }
