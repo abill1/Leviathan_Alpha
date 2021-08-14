@@ -18,6 +18,12 @@ public:
 	/** Needed for every widget. Initializes the widget. */
 	void Construct(const FArguments& InArgs);
 
+	FReply OnNewGameClicked() const;
+	FReply OnQuitGameClicked() const;
+
+	/** Add to appease compiler warnings */
+	virtual bool SupportsKeyboardFocus() const override;
+
 public:
 	TWeakObjectPtr<class AMainMenuHUD> OwningHUD;				// This HUD creates the widget
 

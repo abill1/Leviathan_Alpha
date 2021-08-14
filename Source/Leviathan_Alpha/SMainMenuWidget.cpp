@@ -8,27 +8,63 @@
 
 void SMainMenuWidget::Construct(const FArguments& InArgs)
 {
+	bCanSupportFocus = true;												// Add to appease compiler warnings
+
+	this->OwningHUD = InArgs._OwningHUD;
+
 	const FMargin ContentPadding = FMargin(500.0f, 300.0f);
-	const FText MainTitle = LOCTEXT("GameTitle", "Leviathan: Alpha");
+	const FMargin ButtonPadding = FMargin(10.0f);
+	const FText sMainTitle	= LOCTEXT("GameTitle", "Leviathan: Alpha");
+	const FText sNewGame	= LOCTEXT("NewGame", "New Game");
+	const FText sSettings	= LOCTEXT("Settings", "Settings");
+	const FText sQuitGame	= LOCTEXT("QuitGame", "Quit Game");
 
+	// ----- Set Up Font -----
+	FSlateFontInfo ButtonFont = FCoreStyle::Get().GetFontStyle("EmbossedText");
+	ButtonFont.Size = 40.0f;
+	FSlateFontInfo TitleFont = ButtonFont;
+	TitleFont.Size = 60.0f;
+
+	// ----- Set Up Widget Slots -----
 	ChildSlot
+	[
+		// ----- Background Image ----- 
+		SNew(SOverlay) 
+		+ SOverlay::Slot().HAlign(HAlign_Fill).VAlign(VAlign_Fill)
 		[
-			// ----- Background Image ----- 
-			SNew(SOverlay) 
-			+ SOverlay::Slot().HAlign(HAlign_Fill).VAlign(VAlign_Fill)
-				[
-					SNew(SImage).ColorAndOpacity(FColor::Black)
-				]
-			+ SOverlay::Slot().HAlign(HAlign_Fill).VAlign(VAlign_Fill).Padding(ContentPadding)
-				[
-					SNew(SVerticalBox)
-					+ SVerticalBox::Slot()
-						[
-							SNew(STextBlock).Text(MainTitle)
-						]
-				]
-		];
+				SNew(SImage).ColorAndOpacity(FColor::Black)
+		]
+		+ SOverlay::Slot().HAlign(HAlign_Fill).VAlign(VAlign_Fill).Padding(ContentPadding)
+		[
+			SNew(SVerticalBox)
+			// ----- Title -----
+			+ SVerticalBox::Slot()
+			[
+				SNew(STextBlock).Font(TitleFont).Text(sMainTitle).Justification(ETextJustify::Center)
+			]
+			// ----- New Game Button -----
+			+ SVerticalBox::Slot()
+			[
+				SNew(SButton)[SNew(STextBlock).Font(ButtonFont).Text(sNewGame).Justification(ETextJustify::Center)]
+			]
+			// ----- Settings Button -----
+			+ SVerticalBox::Slot()
+			[
+				SNew(SButton)[SNew(STextBlock).Font(ButtonFont).Text(sSettings).Justification(ETextJustify::Center)]
+			]
+			// ----- Quit Game Button -----
+			+ SVerticalBox::Slot()
+			[
+				SNew(SButton)[SNew(STextBlock).Font(ButtonFont).Text(sMainTitle).Justification(ETextJustify::Center)]
+			]
+		]
+	];
 
+}
+
+bool SMainMenuWidget::SupportsKeyboardFocus() const
+{
+	return true;
 }
 
 #undef LOCTEXT_NAMESPACE

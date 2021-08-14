@@ -13,5 +13,13 @@ UCLASS()
 class LEVIATHAN_ALPHA_API AMainMenuHUD : public AHUD
 {
 	GENERATED_BODY()
-	
+
+protected:
+	virtual void BeginPlay() override;
+
+protected:
+	TSharedPtr<class SMainMenuWidget> MainMenuWidget;
+	TSharedPtr<class SWidget> MainMenuWidgetContainer;
+
 };
+
